@@ -1,5 +1,0 @@
-submodule.components/QRCode.path components/QRCode
-submodule.components/wolfssl.path components/wolfssl
-submodule.main/ArduinoJson.path main/ArduinoJson
-submodule.components/ESP_influxdb.path components/ESP_influxdb
-submodule.utils/HMCatalog.path utils/HMCatalog
