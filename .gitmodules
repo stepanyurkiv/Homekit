@@ -1,0 +1,18 @@
+[submodule "components/QRCode"]
+	path = components/QRCode
+	url = https://github.com/phildubach/QRCode.git
+[submodule "components/wolfssl"]
+	path = components/wolfssl
+	url = https://github.com/younghyunjo/wolfssl.git
+[submodule "main/ArduinoJson"]
+	path = main/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson.git
+[submodule "components/ESP_influxdb"]
+	path = components/ESP_influxdb
+	url = https://github.com/hwwong/ESP_influxdb.git
+[submodule "utils/HMCatalog"]
+	path = utils/HMCatalog
+	url = https://github.com/ooper-shlab/HMCatalog-Swift3.git
+[submodule "utils/hap-client"]
+	path = utils/hap-client
+	url = https://github.com/forty2/hap-client.git

@@ -1,0 +1,750 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"send",
+				"sendEncrypt"
+			],
+			[
+				"HAP_",
+				"HAP_TIME_FORMAT"
+			],
+			[
+				"time",
+				"timezone"
+			],
+			[
+				"new",
+				"newValue"
+			],
+			[
+				"open",
+				"_openedDb"
+			],
+			[
+				"DB",
+				"DB_SUCCESS"
+			],
+			[
+				"HAP",
+				"HAP_INTERVAL"
+			],
+			[
+				"access",
+				"accessoryAtIndex"
+			],
+			[
+				"acce",
+				"accessoryAtIndex"
+			],
+			[
+				"to",
+				"toString"
+			],
+			[
+				"devi",
+				"deviceLTPK"
+			],
+			[
+				"sharec",
+				"sharedSecret"
+			],
+			[
+				"HAPVe",
+				"HAPVerifyState"
+			],
+			[
+				"mem",
+				"memcmp"
+			],
+			[
+				"ED",
+				"ED25519_PUBLIC_KEY_LENGTH"
+			],
+			[
+				"ios_device",
+				"ios_device_ltpk"
+			],
+			[
+				"_pa",
+				"_pairings"
+			],
+			[
+				"sub",
+				"subTlv"
+			],
+			[
+				"err",
+				"error_code"
+			],
+			[
+				"charctr",
+				"characteristics"
+			],
+			[
+				"char",
+				"characteristics"
+			],
+			[
+				"HTTP",
+				"HTTP_CONTENT_TYPE_TLV8"
+			],
+			[
+				"con",
+				"contentType"
+			],
+			[
+				"content",
+				"contentType"
+			],
+			[
+				"inde",
+				"indexOf"
+			],
+			[
+				"cha",
+				"characteristic"
+			],
+			[
+				"enc",
+				"encryptedLen"
+			],
+			[
+				"HTTP_CONTENT_TYPE_",
+				"HTTP_CONTENT_TYPE_HAPJSON"
+			],
+			[
+				"set",
+				"setupID"
+			],
+			[
+				"ui",
+				"uint8_t"
+			],
+			[
+				"update",
+				"updateServiceTxt"
+			],
+			[
+				"is",
+				"isPaired"
+			],
+			[
+				"_c",
+				"_categoryIndicator"
+			],
+			[
+				"uint",
+				"uint8_t"
+			],
+			[
+				"gen",
+				"generateID"
+			],
+			[
+				"co",
+				"contentLength"
+			],
+			[
+				"HAP_CHA",
+				"HAP_CHARACTER_HUE"
+			],
+			[
+				"_pai",
+				"_pairSetup"
+			],
+			[
+				"_pari",
+				"_pairSetup"
+			],
+			[
+				"buff",
+				"bufferLength"
+			],
+			[
+				"hap",
+				"hapClient"
+			],
+			[
+				"size",
+				"sizeof"
+			],
+			[
+				"buffer",
+				"bufferSize"
+			],
+			[
+				"uni",
+				"uint8_t"
+			],
+			[
+				"ver",
+				"verified"
+			],
+			[
+				"TLV",
+				"TLV8"
+			],
+			[
+				"end",
+				"endif"
+			],
+			[
+				"uit",
+				"uint8_t"
+			],
+			[
+				"_",
+				"_rawBody"
+			],
+			[
+				"raw",
+				"_rawBody"
+			],
+			[
+				"keep",
+				"_keepAlive"
+			],
+			[
+				"chun",
+				"chunkSize"
+			],
+			[
+				"uitn",
+				"uint32_t"
+			],
+			[
+				"pla",
+				"plainBuf"
+			],
+			[
+				"start",
+				"startsWith"
+			],
+			[
+				"header",
+				"headerValue"
+			],
+			[
+				"payload",
+				"payload_size"
+			],
+			[
+				"u",
+				"uint8_t"
+			],
+			[
+				"LOG",
+				"ESP_LOGD"
+			],
+			[
+				"_p",
+				"_pairSetup"
+			],
+			[
+				"Homekit",
+				"HomekitPairSetup"
+			],
+			[
+				"h",
+				"h"
+			],
+			[
+				"sw",
+				"switch_on_1"
+			],
+			[
+				"UNI",
+				"UNIT_CODE_1"
+			],
+			[
+				"switch_",
+				"switch_on_1"
+			],
+			[
+				"increment",
+				"incrementAndGet"
+			],
+			[
+				"as",
+				"asJSON"
+			],
+			[
+				"save",
+				"saveAs"
+			],
+			[
+				"pay",
+				"paymentMethodPreferences"
+			],
+			[
+				"Power",
+				"powerTypePreferences"
+			],
+			[
+				"mbb",
+				"mbbUserId"
+			],
+			[
+				"MBB",
+				"MBBUserId"
+			],
+			[
+				"file_",
+				"file_name"
+			],
+			[
+				"Sensor",
+				"SensorData"
+			],
+			[
+				"token",
+				"tokenCache"
+			],
+			[
+				"TOKEN",
+				"TOKEN_ICCPD"
+			],
+			[
+				"t",
+				"TOKEN_JSON"
+			],
+			[
+				"Tariff",
+				"TariffData"
+			],
+			[
+				"Int",
+				"Integer"
+			],
+			[
+				"hold",
+				"holdFor"
+			],
+			[
+				"CPE",
+				"CPEManager"
+			],
+			[
+				"esp",
+				"esp-idf"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 357.0,
+		"last_filter": "ind",
+		"selected_items":
+		[
+			[
+				"ind",
+				"Indent JSON"
+			],
+			[
+				"pre",
+				"Pretty JSON: Validate"
+			],
+			[
+				"set",
+				"Set Syntax: JSON"
+			],
+			[
+				"inde",
+				"Indent JSON"
+			],
+			[
+				"prett",
+				"Pretty JSON: Validate"
+			],
+			[
+				"select",
+				"UI: Select Theme"
+			],
+			[
+				"s",
+				"Set Syntax: JSON"
+			],
+			[
+				"rei",
+				"Indentation: Reindent Lines"
+			],
+			[
+				"v",
+				"Pretty JSON: Validate"
+			],
+			[
+				"json",
+				"Pretty JSON: Validate"
+			],
+			[
+				"va",
+				"Pretty JSON: Validate"
+			],
+			[
+				"in",
+				"Indent JSON"
+			],
+			[
+				"se",
+				"Set Syntax: JSON"
+			],
+			[
+				"o",
+				"Terminal: Open"
+			],
+			[
+				"ter",
+				"Terminal: Open"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"set jav",
+				"Set Syntax: JavaScript"
+			],
+			[
+				"jso",
+				"Indent JSON"
+			],
+			[
+				"vali",
+				"Pretty JSON: Validate"
+			],
+			[
+				"set js",
+				"Set Syntax: JSON"
+			],
+			[
+				"i",
+				"Indent JSON"
+			],
+			[
+				"finder",
+				"Finder: Open here"
+			],
+			[
+				"pac",
+				"Package Control: Install Package"
+			],
+			[
+				"apck",
+				"Package Control: Upgrade/Overwrite All Packages"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"xp",
+				"XPath: Select entire element"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"mar",
+				"Markdown Preview: Preview in Browser"
+			]
+		],
+		"width": 430.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/michael/Development/workspace/Homekit",
+		"/Users/michael/Development/workspace/Homekit/main",
+		"/Users/michael/Development/workspace/Homekit/main/HAP",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins"
+	],
+	"file_history":
+	[
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginSwitch.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessory.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessory.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessorySet.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessorySet.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPCharacteristics.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPGlobals.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPVersion.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPServer.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPDeviceID.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPServer.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPDeviceID.cpp",
+		"/Users/michael/Development/workspace/Homekit/.git/COMMIT_EDITMSG",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginLED.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPCharacteristics.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPService.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginDHT.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/Plugins.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginInfluxDB.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginSwitch.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/component.mk",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPLogger.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPLogger.hpp",
+		"/Users/michael/Development/workspace/Homekit/components/NTPClient/component.mk",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPSNTPClient.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPSNTPClient.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPClient.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/main.cpp",
+		"/Users/michael/Development/workspace/Homekit/docs/example-pairingEveApp.md",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/bf28fd2a-d9f3-48c7-9f19-e1ebdadd45cf/home/pi/docker/happython/Dockerfile",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/bf28fd2a-d9f3-48c7-9f19-e1ebdadd45cf/home/pi/docker/homebridge-michael/Dockerfile",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/HAPPreferences.hpp",
+		"/Users/michael/Development/workspace/Homekit/components/EventManager/EventManager/EventManager.h",
+		"/Users/michael/Development/workspace/Homekit/components/EventManager/EventManager/EventManager.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/Crypto/chacha20_poly1305.c",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/13c20aa3-babe-42ff-b531-d2973dc0a093/home/pi/docker/homebridge-michael/Dockerfile.debian",
+		"/Users/michael/Development/workspace/Homekit/sample-config.json",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/HAPPluginInfluxDB.hpp",
+		"/Users/michael/Development/workspace/Homekit/components/ESP_influxdb/ESPinfluxdb.cpp",
+		"/Users/michael/Development/workspace/Homekit/components/ESP_influxdb/ESPinfluxdb.h",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPlugins.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPHelper.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginLED.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/HAPPluginInfluxDB.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginDHT.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPService.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPlugins.cpp",
+		"/Users/michael/Development/workspace/Homekit/components/ESP_influxdb/component.mk",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/component.mk",
+		"/Users/michael/Development/workspace/Homekit/components/QRCode/component.mk",
+		"/Users/michael/Development/workspace/Homekit/components/EventManager/component.mk",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/HAPPluginDHT.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/HAPPluginDHT.cpp",
+		"/Users/michael/Development/workspace/homebridge-influxdb/characteristics.json",
+		"/Users/michael/Development/workspace/homebridge-influxdb/main.py",
+		"/Users/michael/Development/workspace/homebridge-influxdb/out.txt",
+		"/Users/michael/Development/workspace/homebridge-influxdb/index.js",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/e43b82bd-9547-4347-8b69-ad619b73e02f/home/pi/docker/homebridge/config/startup.sh",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/e43b82bd-9547-4347-8b69-ad619b73e02f/home/pi/docker/homebridge/config/package.json",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/e43b82bd-9547-4347-8b69-ad619b73e02f/home/pi/docker/homebridge/config/config.json",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/e43b82bd-9547-4347-8b69-ad619b73e02f/home/pi/docker/homebridge/docker-compose.yml",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/e43b82bd-9547-4347-8b69-ad619b73e02f/home/pi/docker/homebridge/config/test.sh",
+		"/Users/michael/Development/workspace/OSAscriptBuilder/command.txt",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/e43b82bd-9547-4347-8b69-ad619b73e02f/home/pi/docker/influxdb/docker-compose.yml",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/e43b82bd-9547-4347-8b69-ad619b73e02f/home/pi/docker/grafana/docker-compose.yml",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/e43b82bd-9547-4347-8b69-ad619b73e02f/home/pi/docker/homebridge/.gitignore",
+		"/Users/michael/Scripts/flowerpower_passwordtest.py",
+		"/Users/michael/Development/workspace/OSAscriptBuilder/cmdState.txt",
+		"/Users/michael/Development/workspace/OSAscriptBuilder/cmdBuilder.py",
+		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/89eb891e-b893-43fe-94d7-5b631223fd87/home/pi/HAP-python/main.py",
+		"/Users/michael/Development/workspace/Homekit/main/EventManager/EventManager/EventManager.h",
+		"/Users/michael/Development/workspace/Homekit/main/EventManager/EventManager/EventManager.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/HAPPluginLED.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/HAPPluginLED.hpp",
+		"/Users/michael/Development/workspace/Homekit/utils/QRCode/setupHash.py",
+		"/Users/michael/Development/Arduino/hardware/espressif/esp32/libraries/SimpleBLE/src/SimpleBLE.h",
+		"/Users/michael/Development/Arduino/hardware/espressif/esp32/libraries/SimpleBLE/src/SimpleBLE.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPVerifyContext.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPairSetup.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPWiFiHelper.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPRequest.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/PluginDHT.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPClient.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/Plugins.hpp",
+		"/Users/michael/Development/workspace/Homekit/Makefile",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPHelper.cpp",
+		"/Users/michael/Development/workspace/Homekit/utils/QRCode/bitmap.c",
+		"/Users/michael/Development/workspace/Homekit/utils/QRCode/bitmap2.c",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/concat.h",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/base36.h",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/base36.c",
+		"/Users/michael/Development/workspace/Homekit-self SRP/main/Crypto/SRP.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPBonjour.cpp",
+		"/Users/michael/Development/workspace/Homekit/README.md",
+		"/Users/michael/Development/workspace/Homekit/main/WiFiCredentials.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPCategories.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPServices.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPServices.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/Crypto/ed25519.h",
+		"/Users/michael/Development/workspace/Homekit-self SRP/main/HAP/HAPServer.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/Crypto/chacha20_poly1305.h",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPBuffer.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPBuffer.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPTypes.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/Crypto/hkdf.h",
+		"/Users/michael/Development/workspace/Homekit-self SRP/README.rst",
+		"/Users/michael/Development/workspace/Homekit/main/Crypto/ed25519.c",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPairings.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPairings.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPTLV8.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/concat.c",
+		"/Users/michael/Development/workspace/esp32-homekit/src/pair_setup.c",
+		"/Users/michael/Development/workspace/esp32-homekit/examples/switch/main/main.c",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPRequest.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/Crypto/srp.c",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPUpdate.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/Crypto/m_hkdf.c",
+		"/Users/michael/Development/workspace/Homekit/main/Crypto/hkdf.c",
+		"/Users/michael/Development/workspace/Homekit/main/Crypto/m_hkdf.h",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPUpdate.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/Crypto/hkdf.c.bak.c",
+		"/Users/michael/Development/workspace/Homekit/sdkconfig",
+		"/Users/michael/Development/workspace/Homekit/utils/update_server/webserver.py",
+		"/Users/michael/Development/workspace/Homekit/README.rst",
+		"/Users/michael/Development/workspace/Homekit/build.sh",
+		"/Users/michael/Development/workspace/esp32-homekit/sdkconfig",
+		"/Users/michael/Development/workspace/ESP32Homekit/main/component.mk",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPWiFiHelper.hpp"
+	],
+	"find":
+	{
+		"height": 48.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"::handleE",
+			"::handle",
+			"::handleev",
+			"sendEncrypt",
+			"FreeHeap()",
+			"Heap()",
+			"::handle"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 48.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "Homekit.sublime-project",
+	"replace":
+	{
+		"height": 40.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"t",
+				"Frame 1409: 544 bytes on wire (4352 bits), 544 byt"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 87.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 392.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 219.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

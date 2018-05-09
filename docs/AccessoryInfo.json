@@ -1,0 +1,21 @@
+{
+	"displayName": "HomeBridge",
+	"category": 2,
+	"pincode": "031-45-712",
+	/* privateKey */
+	"signSk": "d3b2892596edfbfb54f8ab5719fd3ad1a1a3e513e0fb6f1db84d3db56a65f44f5029298b2f0c69a216c8e7660462afa191b9036017b2745fb1da46564e03a8ef",
+	
+	/* serverLTPK */
+	"signPk": "5029298b2f0c69a216c8e7660462afa191b9036017b2745fb1da46564e03a8ef",
+	"pairedClients": {
+		"57243508-3291-52ee-83c4-c3320795b0dd": "09e70a2a3496ae7743e4643984c3bab20b3ee770bbf7a5e8277075589c48f87e"
+	},
+	"configVersion": 2,
+	"configHash": "be4d56800fa43a28c142b4235b6258fc48d1de02",
+	"relayEnabled": false,
+	"relayState": 2,
+	"relayAccessoryID": "",
+	"relayAdminID": "",
+	"relayPairedControllers": {},
+	"accessoryBagURL": ""
+}

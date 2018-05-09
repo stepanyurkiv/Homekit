@@ -1,0 +1,13 @@
+{
+    "pincode": "031-45-712",
+    "plugins": [
+        {
+            "HAPPluginInfluxDB": {
+                "hostname": "pi3.local",
+                "password": "pwd"
+            }
+        }
+    ],
+    "valid": true,
+    "version": 1
+}

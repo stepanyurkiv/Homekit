@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "sodium": "^2.0.1"
+  }
+}

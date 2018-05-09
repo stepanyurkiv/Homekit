@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ufwb version="1.17">
+    <grammar name="TLV-Step-M1" start="id:17" author="Michael Hueber" fileextension="unknown" uti="com.apple.macbinary-archive">
+        <description>Grammar for BIN files</description>
+        <structure name="TLV-Step-M1" id="17" encoding="ISO_8859-1:1987" endian="big" signed="no">
+            <number name="State" mustmatch="yes" id="18" fillcolor="4CBEFF" type="integer" length="1" display="hex">
+                <fixedvalues>
+                    <fixedvalue name="State" value="0x6"/>
+                </fixedvalues>
+            </number>
+            <number name="Len" id="19" fillcolor="4CBEFF" type="integer" length="1"/>
+            <string name="Val" id="20" fillcolor="4CBEFF" type="fixed-length" length="Len" encoding="ISO_8859-9:1989"/>
+            <number name="Salt_State" mustmatch="yes" id="21" fillcolor="FFBF01" type="integer" length="1" display="hex">
+                <fixedvalues>
+                    <fixedvalue name="State" value="0x2"/>
+                </fixedvalues>
+            </number>
+            <number name="Salt_Len" id="22" fillcolor="FFB70B" type="integer" length="1"/>
+            <string name="Salt_Val" id="23" fillcolor="FFF479" type="fixed-length" length="Salt_Len"/>
+            <number name="PK_State" id="24" fillcolor="3B92C3" type="integer" length="1"/>
+            <number name="PK_Len" id="25" fillcolor="3B92C3" type="integer" length="1"/>
+            <string name="PK_Val" id="26" fillcolor="4CBEFF" type="fixed-length" length="PK_Len" encoding="ISO_8859-9:1989"/>
+            <number name="PK_State_2" id="27" fillcolor="3B92C3" type="integer" length="1"/>
+            <number name="PK_Len_2" id="28" fillcolor="3B92C3" type="integer" length="1"/>
+            <string name="PK_Val_2" id="29" fillcolor="4CBEFF" type="fixed-length" length="PK_Len_2" encoding="ISO_8859-9:1989"/>
+        </structure>
+    </grammar>
+</ufwb>

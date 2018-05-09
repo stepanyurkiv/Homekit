@@ -1,0 +1,43 @@
+### Arduino ###
+build/
+sdkconfig.old
+
+### macOS ###
+*.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+### HAP Spec ###
+docs/HAP-Specification-Non-Commercial-Version.pdf
+docs/.*
+
+### Eclipse ###
+.cproject
+.project
+.settings
+
+### elasticbeanstalk ###
+utils/update_server/.*
+
+### Backup ###
+*.bak
+
+### WIFI Credentials ###
+WiFiCredentials.hpp
+
+### buildnumber ###
+buildnumber
+utils/buildnumber/buildnumber
+utils/buildnumber/*.o
+
+### node_modules ###
+node_modules/
+
+### else ###
+git-submodules.sh
