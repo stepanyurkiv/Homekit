@@ -12,10 +12,20 @@
 #include <Arduino.h>
 #include <sodium.h>
 
-#define HAP_AAD_LENGTH 2
+#define HAP_ENCRYPTION_AAD_SIZE 	2
+#define HAP_ENCRYPTION_NONCE_SIZE 	12
+#define HAP_ENCRYPTION_HMAC_SIZE	16
+#define HAP_ENCRYPTION_KEY_SIZE		32
+
+#define HAP_ENCRYPTION_DEBUG		1
+
 
 class HAPEncryption {
 public:
+
+
+	static int begin();
+
 	// Set the following values to ... to get the padded buffer size 
 	//		buf 		  	= NULL
 	//  	max_buflen 		= 0
@@ -40,7 +50,7 @@ public:
 			uint8_t *key);
 
 	static int verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[], uint16_t length, 
-			uint8_t mac[], uint8_t aad[], uint16_t decryptCount, uint8_t key[]);
+			uint8_t mac[], uint8_t aad[], int decryptCount, uint8_t key[]);
 };
 
 #endif /* HAPENCRYPTION_HPP_ */

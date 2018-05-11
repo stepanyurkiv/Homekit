@@ -28,7 +28,7 @@ HAPWiFiHelper::~HAPWiFiHelper() {
 
 void HAPWiFiHelper::startWPS(){
 
-	WiFi.mode(WIFI_MODE_STA);
+	WiFi.mode(WIFI_STA);
 	//ESP_ERROR_CHECK(esp_wifi_wps_enable(WPS_TYPE_PBC));
 	ESP_ERROR_CHECK(esp_wifi_wps_start(0));
 
@@ -46,7 +46,7 @@ void HAPWiFiHelper::connect(const char* ssid, const char* password) {
 	LogV(ssid, false);
 	LogV( F("* .."), false);
 
-	WiFi.mode(WIFI_MODE_STA);
+	WiFi.mode(WIFI_STA);
 	WiFi.begin(ssid, password);
 
 	while (WiFi.status() != WL_CONNECTED) {

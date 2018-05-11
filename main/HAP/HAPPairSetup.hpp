@@ -14,9 +14,8 @@
 
 struct HAPPairSetup {
     void* srp;
-    uint8_t sessionKey[CURVE25519_SECRET_LENGTH];
+    //uint8_t sessionKey[CURVE25519_SECRET_LENGTH];
     
-
 
     // -> LongTermContext
     struct {
@@ -26,16 +25,9 @@ struct HAPPairSetup {
 
     
     // -> EncryptionContext
-    uint8_t encryptKey[CURVE25519_SECRET_LENGTH];
-    uint8_t decryptKey[CURVE25519_SECRET_LENGTH];
+    //uint8_t encryptKey[CURVE25519_SECRET_LENGTH];
+    //uint8_t decryptKey[CURVE25519_SECRET_LENGTH];
 
-    int encryptCount;
-    int decryptCount;
-
-    HAPPairSetup(){
-        encryptCount = 0;
-        decryptCount = 0;
-    }
 };
 
 #endif /* HAPPAIRSETUP_HPP_ */

@@ -18,7 +18,6 @@
 
 #include "HAPEncryption.hpp"
 
-#include "HAPEncryption.hpp"
 #include "srp.h"
 #include "chacha20_poly1305.h"
 #include "concat.h"
@@ -56,12 +55,7 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 	//	_clients.resize(maxClients);
 	_firmwareSet = false;
 
-	_pairSetup = new struct HAPPairSetup;	
-	
-	_pairSetup->decryptCount = -1;
-	_pairSetup->encryptCount = -1;	
-	
-	_verifyContext = new struct HAPVerifyContext;
+	_pairSetup = new struct HAPPairSetup();			
 
 	_previousMillis = 0;
 	_minimalPluginInterval = HAP_MINIMAL_PLUGIN_INTERVAL;
@@ -74,6 +68,9 @@ HAPServer::~HAPServer() {
 }
 
 bool HAPServer::begin() {
+
+
+	int error_code = 0;
 
 	HAPDeviceID::generateID();
 
@@ -133,6 +130,16 @@ bool HAPServer::begin() {
 	LogV("Loading settings ...", false);
 
 	LogV("OK", true);
+
+
+	LogV("Starting encrpytion engine ...", false);
+	error_code = HAPEncryption::begin();
+	if (error_code != 0){
+		LogE(F("[ERROR] Failed to initialize libsodium!"), true);		
+	} else {
+		LogV("OK", true);
+	}
+
 
 
 	LogV( F("Setup accessory ..."), false);
@@ -509,26 +516,25 @@ void HAPServer::handleClientState(HAPClient* hapClient) {
 
 			break;
 		case CLIENT_STATE_CONNECTED:
-			LogD( F("<<< client connected from IP: "), false );
-			LogD(hapClient->client.remoteIP().toString(), true);
-
+			LogV( "<<< client [" + hapClient->client.remoteIP().toString() + "] connected", true );		
 			_clients.push_back(*hapClient);
 
 			break;
 		case CLIENT_STATE_AVAILABLE:
-			LogD( F("<<< client available"), true );
+			LogV( "<<< client [" + hapClient->client.remoteIP().toString() + "] available: ", false );
+			LogD( String(hapClient->client.available()), true );
 
 			handleClientAvailable(hapClient);
 
 			break;
 		case CLIENT_STATE_SENT:
-			LogD( F("<<< client sent"), true );
+			LogV( F("<<< client sent"), true );
 			break;
 		case CLIENT_STATE_RECEIVED:
-			LogD( F("<<< client received"), true );
+			LogV( F("<<< client received"), true );
 			break;
 		case CLIENT_STATE_IDLE:
-			LogD( F("<<< client idle"), true );
+			LogV( "<<< client [" + hapClient->client.remoteIP().toString() + "] idle", true );
 			break;
 	}
 }
@@ -595,7 +601,7 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 		hapClient->client.readBytes(AAD, AAD_LENGTH);
 		
 		uint16_t trueLength = ((uint16_t)AAD[1] << 8) | AAD[0];
-		int availableSize = hapClient->client.available() - 16;	// 16 is the size of the HMAC
+		int availableSize = hapClient->client.available() - HAP_ENCRYPTION_HMAC_SIZE;	// 16 is the size of the HMAC
 
 		Serial.printf("AAD: %02X%02X - %d\n", AAD[0], AAD[1], trueLength);				
 		Serial.printf("availableSize: %d\n", availableSize);
@@ -617,8 +623,9 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 	    // < n:    encrypted data according to AEAD algorithm, up to 1024 bytes>
 	    //
 	    // Needs to be incremented each time it is called after the 1st 4 bytes
-		uint16_t nonce = _pairSetup->decryptCount++;
-
+		
+    	LogW("VOR decryptCount: " + String(hapClient->encryptionContext->decryptCount), true);
+		int nonce = hapClient->encryptionContext->decryptCount;
 
 		//
 		// cipherText
@@ -631,18 +638,21 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 
 		// 
 		// hmac
-		uint8_t hmac[16];	// 16 is the size of the HMAC
+		uint8_t hmac[HAP_ENCRYPTION_HMAC_SIZE];	// 16 is the size of the HMAC
 		availableSize = hapClient->client.available();
-		LogD("<<< Need " + String(16) + " bytes and have " + String(availableSize) + " bytes", true);
-		while ( 16 > availableSize ) {
+		LogD("<<< Need " + String(HAP_ENCRYPTION_HMAC_SIZE) + " bytes and have " + String(availableSize) + " bytes", true);
+		while ( HAP_ENCRYPTION_HMAC_SIZE > availableSize ) {
 			// The packet is bigger than the available data; wait till more comes in
 			delay(1);
 		}
 
-		hapClient->client.readBytes(hmac, 16);
+		hapClient->client.readBytes(hmac, HAP_ENCRYPTION_HMAC_SIZE);
 
 		uint8_t decrypted[trueLength];
-		HAPEncryption::verifyAndDecrypt(decrypted, cipherText, trueLength, hmac, AAD, nonce, _pairSetup->decryptKey);
+		HAPEncryption::verifyAndDecrypt(decrypted, cipherText, trueLength, hmac, AAD, nonce, hapClient->encryptionContext->decryptKey);		
+
+		// increment decrypt counter
+		hapClient->encryptionContext->decryptCount++;
 
 		bodyData = parseRequest(hapClient, (char*)decrypted, trueLength);
 		handlePath(hapClient, bodyData);		
@@ -848,7 +858,7 @@ int HAPServer::decrypt(uint8_t* encrypted, int len, char* decrypted, uint8_t** s
 }
 
 
-char* HAPServer::encrypt(uint8_t *message, size_t length, int* encrypted_len) {
+char* HAPServer::encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount) {
 
 	char* encrypted = (char*) calloc(1, length + (length / HAP_ENCRYPTION_BUFFER_SIZE + 1) * (AAD_LENGTH + CHACHA20_POLY1305_AUTH_TAG_LENGTH) + 1);
 
@@ -870,10 +880,10 @@ char* HAPServer::encrypt(uint8_t *message, size_t length, int* encrypted_len) {
 		encrypted_ptr += AAD_LENGTH;
 		*encrypted_len += AAD_LENGTH;
 
-		nonce[4] = _pairSetup->encryptCount % 256;
-		nonce[5] = _pairSetup->encryptCount++ / 256;
+		nonce[4] = encryptCount % 256;
+		nonce[5] = encryptCount++ / 256;
 
-		err_code = chacha20_poly1305_encrypt_with_nonce(nonce, _pairSetup->encryptKey, aad, AAD_LENGTH, decrypted_ptr, chunk_len, encrypted_ptr);
+		err_code = chacha20_poly1305_encrypt_with_nonce(nonce, key, aad, AAD_LENGTH, decrypted_ptr, chunk_len, encrypted_ptr);
 		if (err_code != 0 ) {
 			LogE("[ERROR] Encrypting failed!", true);
 		}
@@ -1270,9 +1280,8 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 		response += String( HTTP_CRLF );
 	}
 
-
 	int encryptedLen = 0;
-    char* encrypted = encrypt((uint8_t*)response.c_str(), response.length(), &encryptedLen);
+    char* encrypted = encrypt((uint8_t*)response.c_str(), response.length(), &encryptedLen, hapClient->encryptionContext->encryptKey, hapClient->encryptionContext->encryptCount++);
 
     if (encryptedLen == 0) {
     	LogE("[ERROR] Encrpyting response failed!", true);
@@ -1283,7 +1292,7 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
     }
     
 
-	LogD("\nSending encrypted response: ", false);
+	LogD("\n>>> Sending " + String(encryptedLen) + " bytes encrypted response to client [" + hapClient->client.remoteIP().toString() + "] : ", false);
 
 #if HAP_DEBUG
 	LogD(response, true);	
@@ -1415,7 +1424,7 @@ bool HAPServer::sendResponse(HAPClient* hapClient, TLV8* response, bool chunked)
 	hapClient->client.print( HTTP_KEEP_ALIVE );
 
 #if HAP_DEBUG
-	LogD("Sending " + String(response->size()) + " bytes response: ", true);
+	LogD(">>> Sending " + String(response->size()) + " bytes response to client [" + hapClient->client.remoteIP().toString() + "] : ", true);
 	response->print();
 #endif
 
@@ -1471,7 +1480,8 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 	LogI( F("Homekit PIN: "), false);
 	LogI( String(_accessorySet->pinCode()), true);
 
-	LogV( F("<<< Handle /pair-setup Step 1/4 ..."), false);	
+	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 1/4 ...", false);	
+
 
 	TLV8 response;
 
@@ -1546,7 +1556,7 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 }
 
 bool HAPServer::handlePairSetupM3(HAPClient* hapClient) {
-	LogV( F("<<< Handle /pair-setup Step 2/4 ..."), false);
+	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 2/4 ...", false);
 
 	int err_code = 0;
 	TLV8 response;
@@ -1635,7 +1645,7 @@ bool HAPServer::handlePairSetupM3(HAPClient* hapClient) {
 }
 
 bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
-	LogV( F("<<< Handle /pair-setup Step 3/4 ..."), false);
+	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 3/4 ...", false);
 
 	int err_code = 0;
 	TLV8 response;
@@ -1776,7 +1786,7 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	
 	enc_tlv->clear();
 
-	LogV( F("<<< Handle /pair-setup Step 4/4 ..."), true);
+	LogV( "<<< Handle [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 4/4 ...", true);
 	//  _acc_m6_subtlv(srp_key, ps->acc_id, ps->keys.public, ps->keys.private, &acc_subtlv, &acc_subtlv_length);
 	uint8_t accessoryx[HKDF_KEY_LEN] = {0,};
 	hkdf_key_get(HKDF_KEY_TYPE_PAIR_SETUP_ACCESSORY, srp_key, SRP_SESSION_KEY_LENGTH, 
@@ -1883,7 +1893,7 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 
 
 bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
-	LogV( F("<<< Handle /pair-verify Step 1/2 ..."), false);
+	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-verify Step 1/2 ...", false);
 
 	int err_code = 0;
 	TLV8 response;
@@ -1897,6 +1907,9 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
         sendResponse(hapClient, &response);
 		return false;
 	}
+
+	hapClient->encryptionContext->decryptCount = 0;
+	hapClient->encryptionContext->encryptCount = 0;
 
 	LogD("\nGenerating accessory curve25519 keys ...", false);
 
@@ -2032,13 +2045,13 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	LogD( F("OK"), true);
 
 	LogD("Saving context ...", false);
-	_verifyContext = new struct HAPVerifyContext;	
-	memcpy(_verifyContext->secret, sharedSecret, HKDF_KEY_LEN);
-	memcpy(_verifyContext->sessionKey, sessionKey, CURVE25519_SECRET_LENGTH);
-	memcpy(_verifyContext->accessoryLTPK, acc_curve_public_key, ED25519_PUBLIC_KEY_LENGTH);
-	memcpy(_verifyContext->deviceLTPK, ios_device_curve_key, ED25519_PUBLIC_KEY_LENGTH);
+	
 
-
+	hapClient->verifyContext = new struct HAPVerifyContext;	
+	memcpy(hapClient->verifyContext->secret, sharedSecret, HKDF_KEY_LEN);
+	memcpy(hapClient->verifyContext->sessionKey, sharedSecret, CURVE25519_SECRET_LENGTH);
+	memcpy(hapClient->verifyContext->accessoryLTPK, acc_curve_public_key, ED25519_PUBLIC_KEY_LENGTH);
+	memcpy(hapClient->verifyContext->deviceLTPK, ios_device_curve_key, ED25519_PUBLIC_KEY_LENGTH);
 
     
 	LogD( F("Sending response ..."), false);
@@ -2046,7 +2059,7 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	response.encode(HAP_TLV_TYPE_PUBLICKEY, CURVE25519_KEY_LENGTH, acc_curve_public_key);
 	response.encode(TLV_TYPE_ENCRYPTED_DATA, tlv8Len + CHACHA20_POLY1305_AUTH_TAG_LENGTH, encryptedData);
 
-	memcpy(_pairSetup->sessionKey, sharedSecret, CURVE25519_SECRET_LENGTH);
+	//memcpy(_pairSetup->sessionKey, sharedSecret, CURVE25519_SECRET_LENGTH);
 
 #if HAP_DEBUG	
 	response.print();
@@ -2064,7 +2077,7 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 
 
 bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
-	LogV( F("<<< Handle /pair-verify Step 2/2 ..."), false);
+	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-verify Step 2/2 ...", false);
 
 	int err_code = 0;
 	TLV8 response;
@@ -2086,7 +2099,7 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 
 	LogD("\nGenerating decrpytion key ...", true);
 	uint8_t subtlv_key[HKDF_KEY_LEN] = {0,};
-	err_code = hkdf_key_get(HKDF_KEY_TYPE_PAIR_VERIFY_ENCRYPT, _verifyContext->secret, CURVE25519_SECRET_LENGTH, subtlv_key);
+	err_code = hkdf_key_get(HKDF_KEY_TYPE_PAIR_VERIFY_ENCRYPT, hapClient->verifyContext->secret, CURVE25519_SECRET_LENGTH, subtlv_key);
 	if (err_code != 0) {
 		LogE( F("[PAIR-VERIFY M3] [ERROR] hkdf_key_get failed"), true);		    	
 		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M4);
@@ -2176,9 +2189,9 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 
     
 	int ios_device_info_len = 0;
-    uint8_t* ios_device_info = concat3(_verifyContext->deviceLTPK, HKDF_KEY_LEN, 
+    uint8_t* ios_device_info = concat3(hapClient->verifyContext->deviceLTPK, HKDF_KEY_LEN, 
             ios_device_pairing_id, ios_device_pairing_id_len, 
-            _verifyContext->accessoryLTPK, ED25519_PUBLIC_KEY_LENGTH, &ios_device_info_len);
+            hapClient->verifyContext->accessoryLTPK, ED25519_PUBLIC_KEY_LENGTH, &ios_device_info_len);
 
 
 
@@ -2200,7 +2213,7 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
     
 
 	// TODO Move ecrypt & decrypt keys out of pairSetup!
-    err_code = hkdf_key_get(HKDF_KEY_TYPE_CONTROL_READ, _pairSetup->sessionKey, CURVE25519_SECRET_LENGTH, _pairSetup->encryptKey);
+    err_code = hkdf_key_get(HKDF_KEY_TYPE_CONTROL_READ, hapClient->verifyContext->secret, CURVE25519_SECRET_LENGTH, hapClient->encryptionContext->encryptKey);
 	if (err_code != 0) {
 		LogE( F("[ERROR] hkdf_key_get failed"), true);		    	
 		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M4);
@@ -2211,7 +2224,7 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 	}
 
 
-	err_code = hkdf_key_get(HKDF_KEY_TYPE_CONTROL_WRITE, _pairSetup->sessionKey, CURVE25519_SECRET_LENGTH, _pairSetup->decryptKey);
+	err_code = hkdf_key_get(HKDF_KEY_TYPE_CONTROL_WRITE, hapClient->verifyContext->secret, CURVE25519_SECRET_LENGTH, hapClient->encryptionContext->decryptKey);
 	if (err_code != 0) {
 		LogE( F("[ERROR] hkdf_key_get failed"), true);		    	
 		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M4);
@@ -2244,7 +2257,7 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 
 
 void HAPServer::handleAccessories(HAPClient* hapClient) {
-	LogV( F("<<< Handle /accessories ..."), false);
+	LogV( "<<< Handle [" + hapClient->client.remoteIP().toString() + "] -> /accessories ...", false);
 	sendEncrypt(hapClient, HTTP_200, _accessorySet->describe());	
 
 	LogV("OK", true);
@@ -2253,7 +2266,7 @@ void HAPServer::handleAccessories(HAPClient* hapClient) {
 
 
 void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
-	LogV( F("<<< Handle GET /characteristics ..."), false);
+	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> GET /characteristics ...", false);
 
 	String idStr = hapClient->request.params["id"];
 	//LogE(idStr, true);
@@ -2361,7 +2374,7 @@ bool HAPServer::containsNestedKey(const JsonObject& obj, const char* key) {
 
 
 void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
-	LogV( F("<<< Handle PUT /characteristics ..."), true);
+	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] ->  PUT /characteristics ...", true);
 
 	DynamicJsonBuffer jsonBuffer(HAP_ARDUINOJSON_BUFFER_SIZE);
 	JsonObject& root = jsonBuffer.parseObject(body);
@@ -2524,7 +2537,7 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
         if (eventCode == EventManager::kEventEvent) {
 
 
-        	// TODO:!
+        	//
         	// Attention! 
         	// it passes "ev", not the value
         	// --> get the value for the aid and iid of the charact.

@@ -23,7 +23,7 @@
 #include "HAPAccessorySet.hpp"
 
 #include "HAPPairSetup.hpp"
-#include "HAPVerifyContext.hpp"
+
 
 #include "HAPLimits.hpp"
 #include "HAPVersion.hpp"
@@ -122,7 +122,7 @@ public:
 protected:
 
 	struct HAPPairSetup* _pairSetup;
-	struct HAPVerifyContext* _verifyContext;
+
 
 	HAPAccessorySet* _accessorySet;
 	std::vector<HAPClient> _clients;
@@ -214,7 +214,7 @@ private:
 
 	String parseRequest(HAPClient* hapClient, char* decrypted, size_t decrypted_len);
 
-	char* encrypt(uint8_t *message, size_t length, int* encrypted_len);
+	char* encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount);
 	int decrypt(uint8_t* encrypted, int len, char* decrypted, uint8_t** saveptr);
 
 

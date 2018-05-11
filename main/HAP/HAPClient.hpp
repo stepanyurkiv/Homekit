@@ -14,7 +14,7 @@
 
 
 #include "HAPRequest.hpp"
-
+#include "HAPVerifyContext.hpp"
 
 
 enum HAPClientState {
@@ -58,6 +58,9 @@ public:
 	HAPClientState 	state;
 	HAPPairState	pairState;
 	HAPVerifyState	verifyState;	
+
+	struct HAPVerifyContext* 		verifyContext;
+	struct HAPEncryptionContext* 	encryptionContext;
 
 	bool			isEncrypted;
 

@@ -43,7 +43,7 @@ Espressif IoT Development Framework: https://github.com/espressif/esp-idf
 # WiFi Settings
 
 Add a file called ``` WiFiCredentials.hpp ``` in the ```main``` folder and edit the settigs:
-```
+```c++
 //
 // WiFiCredentials.hpp
 // Homekit
@@ -55,7 +55,7 @@ Add a file called ``` WiFiCredentials.hpp ``` in the ```main``` folder and edit 
 #ifndef WIFICREDENTIALS_HPP_
 #define WIFICREDENTIALS_HPP_
 
-#define WIFI_SSID	"SSID"
+#define WIFI_SSID		"SSID"
 #define WIFI_PASSWORD	"PASSWORD"
 
 #endif /* WIFICREDENTIALS_HPP_ */

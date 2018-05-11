@@ -35,8 +35,16 @@ struct HAPEncryptionContext {
 	uint8_t encryptKey[CURVE25519_SECRET_LENGTH];
 	uint8_t decryptKey[CURVE25519_SECRET_LENGTH];
 
-	int encryptCount;
-	int decryptCount;
+
+	uint16_t encryptCount;
+    uint16_t decryptCount;
+
+    HAPEncryptionContext()
+    : encryptCount(0)
+	, decryptCount(0){
+
+	}
+	
 };
 
 
@@ -51,7 +59,8 @@ struct HAPVerifyContext {
 	uint8_t accessoryLTPKLength;
 
 	uint8_t *deviceLTPK;
-	uint8_t deviceLTPKLength;
+	uint8_t deviceLTPKLength;	
+
 
 	HAPVerifyContext() 
 	: secretLength(HKDF_KEY_LEN)
@@ -64,6 +73,13 @@ struct HAPVerifyContext {
 		accessoryLTPK = (uint8_t*) malloc(sizeof(uint8_t) * accessoryLTPKLength);
 		deviceLTPK = (uint8_t*) malloc(sizeof(uint8_t) * deviceLTPKLength);
 	};
+
+	~HAPVerifyContext(){
+		free(secret);
+		free(sessionKey);
+		free(accessoryLTPK);
+		free(deviceLTPK);
+	}
 };
 
 #endif /* HAPVERIFYCONTEXT_HPP_ */

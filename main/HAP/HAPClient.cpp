@@ -11,9 +11,12 @@
 HAPClient::HAPClient()
 : state(CLIENT_STATE_DISCONNECTED)
 , pairState(PAIR_STATE_RESERVED)
+, verifyState(VERIFY_STATE_RESERVED)
 , isEncrypted(false)
 {
 
+	verifyContext = new struct HAPVerifyContext();
+	encryptionContext = new struct HAPEncryptionContext();
 }
 
 HAPClient::~HAPClient() {
