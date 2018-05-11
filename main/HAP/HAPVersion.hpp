@@ -32,10 +32,10 @@ struct HAPVersion {
 	int major, minor, revision, build;
 
 	HAPVersion(){
-		major = 0;
-		minor = 0;
-		revision = 0;
-		build = 0;
+		major 		= 0;
+		minor 		= 0;
+		revision 	= 0;
+		build 		= 0;
 	}
 
 	HAPVersion(const char* version)

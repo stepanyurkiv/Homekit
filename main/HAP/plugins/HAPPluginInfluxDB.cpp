@@ -17,6 +17,13 @@
 #define HAP_ARDUINOJSON_BUFFER_SIZE 2048
 #endif
 
+#define VERSION_MAJOR       0
+#define VERSION_MINOR       0
+#define VERSION_REVISION    3
+#define VERSION_BUILD       0
+
+
+
 const char *INFLUXDB_HOST = "192.168.178.120";
 const uint16_t INFLUXDB_PORT = 8086;
 
@@ -30,7 +37,6 @@ const uint8_t INFLUXDB_IGNORED_SERVICE_TYPES[] = {
 
 HAPPluginInfluxDB::HAPPluginInfluxDB() {
 	
-	LogD("Initializing " + _name + " ...", false);
 	_type = HAP_PLUGIN_TYPE_STORAGE;
 	_name = "HAPPluginInfluxDB";
 	_isEnabled = false;
@@ -39,7 +45,12 @@ HAPPluginInfluxDB::HAPPluginInfluxDB() {
 	_openedDb = false;
 	_influxdb = new Influxdb(INFLUXDB_HOST, INFLUXDB_PORT);	
 
-	LogD("OK", true);
+
+
+    _version.major      = VERSION_MAJOR;
+    _version.minor      = VERSION_MINOR;
+    _version.revision   = VERSION_REVISION;
+    _version.build      = VERSION_BUILD;
 }
 
 bool HAPPluginInfluxDB::openDB(){	

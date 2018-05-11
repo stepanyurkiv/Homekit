@@ -5,6 +5,13 @@
 #define BUILTIN_LED 13
 #endif
 
+#define VERSION_MAJOR       0
+#define VERSION_MINOR       0
+#define VERSION_REVISION    5
+#define VERSION_BUILD       0
+
+
+
 HAPPluginLED::HAPPluginLED(){
     _type = HAP_PLUGIN_TYPE_ACCESSORY;
     _name = "HAPPluginLED";
@@ -12,6 +19,12 @@ HAPPluginLED::HAPPluginLED(){
     _interval = HAP_BLINK_INTERVAL;
     _previousMillis = 0;
     _isOn = true;
+
+
+    _version.major      = VERSION_MAJOR;
+    _version.minor      = VERSION_MINOR;
+    _version.revision   = VERSION_REVISION;
+    _version.build      = VERSION_BUILD;
 }
 
 void identify(bool oldValue, bool newValue) {

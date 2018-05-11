@@ -144,6 +144,8 @@ int HAPEncryption::computePoly1305(uint8_t* hmac, uint8_t* cipherText,
 
     LogD("Handle computePoly1305 ...", true);
 
+    begin();
+
     if (AAD == nullptr) {
         //AAD = Buffer.alloc(0);
     }
@@ -163,6 +165,7 @@ int HAPEncryption::computePoly1305(uint8_t* hmac, uint8_t* cipherText,
 
 
     uint8_t msg[paddedLength] = { 0, };
+    
 #if HAP_ENCRYPTION_DEBUG    
     Serial.printf("paddedLength: %d\n", paddedLength);
 #endif
@@ -240,6 +243,8 @@ int HAPEncryption::verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[],
 
     LogD("Handle verifyAndDecrypt ...", false);
 
+    begin();
+
     if ( length > 1024 + HAP_ENCRYPTION_AAD_SIZE + HAP_ENCRYPTION_HMAC_SIZE ){
         LogE("NOWNOW!!", true);
     }
@@ -302,9 +307,13 @@ int HAPEncryption::verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[],
 #endif
 
     if ( crypto_verify_16(mac, hmac) != 0 ) {
-        LogE("[ERROR] crypto_verify_16 failed!", true);
+#if !HAP_ENCRYPTION_SUPPRESS_WARNINGS      
+        LogW("[WARNING] crypto_verify_16 failed! - Trying to decrypt it anyway ...", true);
+#endif
 
-        //return -1;
+#if HAP_ENCRYPTION_EXIT_ON_FAILURE      
+        return -1;
+#endif
     }
 
     

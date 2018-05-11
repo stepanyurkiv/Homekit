@@ -43,13 +43,13 @@ void HAPAccessorySet::begin(){
 
 void HAPAccessorySet::addAccessoryInfo(){
 	HAPAccessory *accessory = new HAPAccessory();
-	HAPService* infoService = HAPAccessory::addInfoServiceToAccessory(accessory, HAP_HOSTNAME, HAP_MANUFACTURER, HAP_MODELL_NAME, "44-22-777", NULL);
+	HAPService* infoService = HAPAccessory::addInfoServiceToAccessory(accessory, HAP_HOSTNAME, HAP_MANUFACTURER, HAP_MODELL_NAME, "44-22-777", NULL, hap.versionString());
 	
 	
-	stringCharacteristics *fwCha = new stringCharacteristics(charType_firmwareRevision, permission_read, 32);
-	fwCha->setValue(hap.versionString());
-	accessory->addCharacteristics(infoService, fwCha);
-
+	// stringCharacteristics *fwCha = new stringCharacteristics(charType_firmwareRevision, permission_read, 32);
+	// fwCha->setValue(hap.versionString());
+	// accessory->addCharacteristics(infoService, fwCha);
+	
 	addAccessory(accessory);
 }
 

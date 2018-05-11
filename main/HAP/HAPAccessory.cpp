@@ -97,7 +97,7 @@ String HAPAccessory::describe() {
 }
 
 
-HAPService* HAPAccessory::addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunction identifyCallback) {
+HAPService* HAPAccessory::addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunction identifyCallback, String firmwareRev) {
     HAPService *infoService = new HAPService(serviceType_accessoryInfo);
     acc->addService(infoService);
     
@@ -121,6 +121,15 @@ HAPService* HAPAccessory::addInfoServiceToAccessory(HAPAccessory *acc, String ac
     identify->setValue("false");
     identify->valueChangeFunctionCall = identifyCallback;
     acc->addCharacteristics(infoService, identify);
+
+
+    if ( firmwareRev != "" ) {
+        stringCharacteristics *firmwareRevCha = new stringCharacteristics(charType_firmwareRevision, permission_read, 32);
+        firmwareRevCha->setValue(firmwareRev);
+        acc->addCharacteristics(infoService, firmwareRevCha);    
+    }
+    
+
 
     return infoService;
 }

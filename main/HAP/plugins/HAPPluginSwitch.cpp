@@ -12,13 +12,25 @@
 #define BUILTIN_LED 13
 #endif
 
+#define VERSION_MAJOR       0
+#define VERSION_MINOR       1
+#define VERSION_REVISION    1
+#define VERSION_BUILD       0
+
+
 HAPPluginSwitch::HAPPluginSwitch(){
-    _type = HAP_PLUGIN_TYPE_ACCESSORY;
-    _name = "HAPPluginSwitch";
-    _isEnabled = true;
-    _interval = 0;
-    _previousMillis = 0;
-    _isOn = true;
+    _type               = HAP_PLUGIN_TYPE_ACCESSORY;
+    _name               = "HAPPluginSwitch";
+    _isEnabled          = true;
+    _interval           = 0;
+    _previousMillis     = 0;
+    _isOn               = true;
+
+    _version.major      = VERSION_MAJOR;
+    _version.minor      = VERSION_MINOR;
+    _version.revision   = VERSION_REVISION;
+    _version.build      = VERSION_BUILD;
+    
 }
 
 void identifySwitch(bool oldValue, bool newValue) {
@@ -43,7 +55,7 @@ HAPAccessory* HAPPluginSwitch::init(){
 	LogD("\nInitializing plugin: HAPPluginSwitch ...", false);
 
 	HAPAccessory *accessory = new HAPAccessory();
-	HAPAccessory::addInfoServiceToAccessory(accessory, "Builtin Switch", "ACME", "Swtich 1", "123123123", &identifySwitch);
+	HAPAccessory::addInfoServiceToAccessory(accessory, "Builtin Switch", "ACME", "Swtich 1", "123123123", &identifySwitch, version() );
 
     service = new HAPService(serviceType_switch);
     accessory->addService(service);

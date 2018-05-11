@@ -19,6 +19,7 @@
 #include "HAPAccessory.hpp"
 #include "HAPAccessorySet.hpp"
 #include "HAPLogger.hpp"
+#include "HAPVersion.hpp"
 
 //namespace HAPPluginSystem {
 
@@ -43,6 +44,10 @@ public:
 
 	inline enum HAP_PLUGIN_TYPE type(){
 		return _type;
+	}
+
+	inline String version(){
+		return _version.toString();
 	}
 
 	inline String name(){
@@ -86,11 +91,13 @@ public:
 
 protected:
 	enum HAP_PLUGIN_TYPE _type;
-	String _name;
-	bool _isEnabled;
+	String 			_name;
+	bool 			_isEnabled;
 
-	unsigned long _interval;
-	unsigned long _previousMillis;
+	unsigned long 	_interval;
+	unsigned long 	_previousMillis;
+
+	HAPVersion 		_version;
 };
 
 	/* 

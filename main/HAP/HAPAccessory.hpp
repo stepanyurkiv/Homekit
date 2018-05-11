@@ -35,7 +35,7 @@ public:
     characteristics *characteristicsAtIndex(uint8_t index);
     String describe();
 
-    static HAPService* addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunction identifyCallback);
+    static HAPService* addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunction identifyCallback, String firmwareRev = "");
 };
 
 

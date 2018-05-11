@@ -4,12 +4,26 @@
 
 #define HAP_PLUGIN_INTERVAL 2000
 
+#define VERSION_MAJOR       0
+#define VERSION_MINOR       0
+#define VERSION_REVISION    2
+#define VERSION_BUILD       0
+
+
+
 HAPPluginDHT::HAPPluginDHT(){
 	_type = HAP_PLUGIN_TYPE_ACCESSORY;
 	_name = "HAPPluginDHT";
 	_isEnabled = false;
 	_interval = HAP_PLUGIN_INTERVAL;
 	_previousMillis = 0;
+
+
+    _version.major      = VERSION_MAJOR;
+    _version.minor      = VERSION_MINOR;
+    _version.revision   = VERSION_REVISION;
+    _version.build      = VERSION_BUILD;
+
 
 	randomSeed(analogRead(0));
 }

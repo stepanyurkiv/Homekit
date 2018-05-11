@@ -12,17 +12,20 @@
 #include <Arduino.h>
 #include <sodium.h>
 
-#define HAP_ENCRYPTION_AAD_SIZE 	2
-#define HAP_ENCRYPTION_NONCE_SIZE 	12
-#define HAP_ENCRYPTION_HMAC_SIZE	16
-#define HAP_ENCRYPTION_KEY_SIZE		32
+#define HAP_ENCRYPTION_AAD_SIZE 			2		// Don't change!
+#define HAP_ENCRYPTION_NONCE_SIZE 			12		// Don't change!
+#define HAP_ENCRYPTION_HMAC_SIZE			16		// Don't change!
+#define HAP_ENCRYPTION_KEY_SIZE				32		// Don't change!
 
-#define HAP_ENCRYPTION_DEBUG		1
+#define HAP_ENCRYPTION_DEBUG				1		// Be careful, it will print all keys on console
+#define HAP_ENCRYPTION_EXIT_ON_FAILURE 		0		// 0 = ignore 
+													// 1 = Don't ignore and return failure
 
+#define HAP_ENCRYPTION_SUPPRESS_WARNINGS 	1		// Surpress crypto_verify_16 warning
 
 class HAPEncryption {
-public:
 
+public:
 
 	static int begin();
 
@@ -51,6 +54,7 @@ public:
 
 	static int verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[], uint16_t length, 
 			uint8_t mac[], uint8_t aad[], int decryptCount, uint8_t key[]);
+	
 };
 
 #endif /* HAPENCRYPTION_HPP_ */
