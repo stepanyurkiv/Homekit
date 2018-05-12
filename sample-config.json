@@ -1,5 +1,14 @@
 {
+
+    "version": 1,
+    "valid": true,    
     "pincode": "031-45-712",
+    "pairings" : [
+        {
+            "id": "00:00:00:00:00:00",
+            "key": "abc"
+        }
+    ],
     "plugins": [
         {
             "HAPPluginInfluxDB": {
@@ -7,7 +16,5 @@
                 "password": "pwd"
             }
         }
-    ],
-    "valid": true,
-    "version": 1
+    ]
 }

@@ -137,10 +137,10 @@ Stream* HAPLogger::stream(){
 void HAPLogger::printInfo(){
 	_printer->println();
 	_printer->println( F("These are the color definitions of the log output:"));
-	LogE( F("ERROR	 - This is an error message."), true);
+	LogE( F("ERROR   - This is an error message."), true);
 	LogW( F("WARNING - This is a warning."), true);
-	LogI( F("INFO	 - This is information"), true);
+	LogI( F("INFO    - This is information"), true);
 	LogV( F("VERBOSE - These are verbose infos"), true);
-	LogD( F("DEBUG	 - And finally the debug messages"), true);
+	LogD( F("DEBUG   - And finally the debug messages"), true);
 	_printer->println();
 }

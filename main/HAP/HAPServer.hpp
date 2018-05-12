@@ -109,8 +109,6 @@ public:
 	void __setBrand(const char* brand);
 
 
-	bool sendResponse(HAPClient* hapClient, TLV8* response, bool chunked = true);
-	bool sendEncrypt(HAPClient* hapClient, String httpStatus, String plainText, bool chunked = true);
 
 #if HAP_NTP_ENABLED
 	static String timeString();
@@ -119,6 +117,9 @@ public:
 
 
 	String versionString();	
+
+
+
 protected:
 
 	struct HAPPairSetup* _pairSetup;
@@ -160,6 +161,12 @@ protected:
 		return _firmware.version;
 	}
 
+
+
+	//
+	// HTTP Paths
+	//
+
 	// Preferences ?
 	void handlePreferences(HAPClient* hapClient);
 
@@ -170,28 +177,12 @@ protected:
 	void handleCharacteristicsGet(HAPClient* hapClient);	
 	void handleCharacteristicsPut(HAPClient* hapClient, String body);	
 
-	// Connection states
-	void handleClientState(HAPClient* hapClient);
-	void handleClientAvailable(HAPClient* hapClient);
-	void handleClientDisconnect(HAPClient hapClient);
-
-
 	// Identify
 	void handleIdentify(HAPClient* hapClient);
 
 
-	// Pair-Setup states
-	bool handlePairSetupM1(HAPClient* hapClient);
-	bool handlePairSetupM3(HAPClient* hapClient);
-	bool handlePairSetupM5(HAPClient* hapClient);
 
 
-	// Pair-Verify states
-	bool handlePairVerifyM1(HAPClient* hapClient);
-	bool handlePairVerifyM3(HAPClient* hapClient);
-
-
-	bool handlePath(HAPClient* hapClient, String bodyData);
 
 private:
 	struct {
@@ -204,8 +195,19 @@ private:
 	bool _firmwareSet;
 
 	//bool beginSRP();
+
+
+	//
+	// Bonjour
+	//
 	bool updateServiceTxt();
 
+
+	//
+	// HTTP
+	// 
+
+	// parsing
 	void processIncomingRequest(HAPClient* hapClient);
 	void processIncomingEncryptedRequest(HAPClient* hapClient);
 
@@ -213,15 +215,54 @@ private:
 	void processPathParameters(HAPClient* hapClient, String line, int curPos);
 
 	String parseRequest(HAPClient* hapClient, char* decrypted, size_t decrypted_len);
+	bool handlePath(HAPClient* hapClient, String bodyData);
 
+	// Connection states
+	void handleClientState(HAPClient* hapClient);
+	void handleClientAvailable(HAPClient* hapClient);
+	void handleClientDisconnect(HAPClient hapClient);
+
+
+
+	//
+	// Pairing
+	//
+
+	// Pair-Setup states
+	bool handlePairSetupM1(HAPClient* hapClient);
+	bool handlePairSetupM3(HAPClient* hapClient);
+	bool handlePairSetupM5(HAPClient* hapClient);
+
+
+	// Pair-Verify states
+	bool handlePairVerifyM1(HAPClient* hapClient);
+	bool handlePairVerifyM3(HAPClient* hapClient);
+
+
+
+	//
+	// Sending responses
+	// 
+	bool sendResponse(HAPClient* hapClient, TLV8* response, bool chunked = true);
+	bool sendEncrypt(HAPClient* hapClient, String httpStatus, String plainText, bool chunked = true);
+
+
+
+	//
+	// encrpytion / decryption
+	//
 	char* encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount);
-	int decrypt(uint8_t* encrypted, int len, char* decrypted, uint8_t** saveptr);
+	// int decryt(uint8_t* encrypted, int len, char* decrypted, uint8_t** saveptr);
 
 
+	//
+	// TLV8
+	//
+	static bool encode(HAPClient* hapClient);
 	
 
-	static bool encode(HAPClient* hapClient);
-	static bool containsNestedKey(const JsonObject& obj, const char* key);
+	String getValueForCharacteristics(int aid, int iid);
+
 
 	const char* __HOMEKIT_SIGNATURE;
 };

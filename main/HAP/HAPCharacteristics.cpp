@@ -8,8 +8,8 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, bool
     String result;
     if (p & permission_read) {
         result += HAPHelper::wrap("value")+":";
-        if (value) result += "true";
-        else result += "false";
+        if (value) result += true;
+        else result += false;
         result += ",";
     }
     

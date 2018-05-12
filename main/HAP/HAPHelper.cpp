@@ -171,3 +171,16 @@ String HAPHelper::dictionaryWrap(String *key, String *value, unsigned short len)
     
     return result;
 }
+
+
+bool HAPHelper::containsNestedKey(const JsonObject& obj, const char* key) {
+    for (const JsonPair& pair : obj) {
+        if (!strcmp(pair.key, key))
+            return true;
+
+        if (containsNestedKey(pair.value.as<JsonObject>(), key)) 
+            return true;
+    }
+
+    return false;
+}

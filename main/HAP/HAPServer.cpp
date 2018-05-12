@@ -222,8 +222,7 @@ bool HAPServer::begin() {
 
 	LogV(F("OK"), true);
 
-	LogV( F("Loading plugins ..."), false);
-	LogD("", true);
+	LogI( F("Loading plugins ..."), true);
 
 	auto &factory = HAPPluginFactory::Instance();        
     std::vector<String> names = factory.names();    
@@ -237,9 +236,9 @@ bool HAPServer::begin() {
 
     	if ( plugin->isEnabled()) {
 
-			LogV("   - " + plugin->name(), false);
-    		LogV(" enabled: " + String(plugin->isEnabled()), false);
-    		LogV(" of type: " + String(plugin->type()), true);
+			LogI("   - ENABLED  " + plugin->name(), false);
+    		// LogV(" enabled: " + String(plugin->isEnabled()), false);
+    		LogI(" of type: " + String(plugin->type()), true);
 
 
 	    	if ( plugin->type() == HAP_PLUGIN_TYPE_ACCESSORY) {
@@ -254,12 +253,10 @@ bool HAPServer::begin() {
 	    	_plugins.push_back(std::move(plugin));
     	} else {
     		LogW("   - DISABLED " + plugin->name(), false);
-    		LogW(" enabled: " + String(plugin->isEnabled()), false);
+    		// LogW(" enabled: " + String(plugin->isEnabled()), false);
     		LogW(" of type: " + String(plugin->type()), true);
     	}
 	}
-    LogV(F("OK"), true);
-
 
 
 #if HAP_GENERATE_XHM	
@@ -738,8 +735,8 @@ bool HAPServer::handlePath(HAPClient* hapClient, String bodyData){
 			handleCharacteristicsPut( hapClient, bodyData );
 		}		
 	} else {
-		LogW("Not yet implemented! >>> ", false);
-		LogW("request - method: " + String(hapClient->request.method) + " - path: " + String(hapClient->request.path), true);
+		LogW("Not yet implemented! >>> client [" + hapClient->client.remoteIP().toString() + "] ", false);
+		LogW("requested -> method: " + String(hapClient->request.method) + " - path: " + String(hapClient->request.path), true);
 
 		return false;
 	}
@@ -779,7 +776,7 @@ String HAPServer::parseRequest(HAPClient* hapClient, char* msg, size_t msg_len){
 
 
 
-
+#if 0
 int HAPServer::decrypt(uint8_t* encrypted, int len, char* decrypted, uint8_t** saveptr)
 {
 	
@@ -856,6 +853,7 @@ int HAPServer::decrypt(uint8_t* encrypted, int len, char* decrypted, uint8_t** s
 #endif
 
 }
+#endif
 
 
 char* HAPServer::encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount) {
@@ -1249,7 +1247,11 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 		response += String( HTTP_CRLF );
 	} else {
 		response += String( HTTP_CONTENT_TYPE_HAPJSON );
-		response += String( HTTP_KEEP_ALIVE );
+
+		if ( httpStatus != EVENT_200 ) {
+			response += String( HTTP_KEEP_ALIVE );	
+		}
+		
 
 		if (chunked) {
 			response += String( HTTP_TRANSFER_ENCODING );
@@ -1292,7 +1294,7 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
     }
     
 
-	LogD("\n>>> Sending " + String(encryptedLen) + " bytes encrypted response to client [" + hapClient->client.remoteIP().toString() + "] : ", false);
+	LogD("\n>>> Sending " + String(encryptedLen) + " bytes encrypted response to client [" + hapClient->client.remoteIP().toString() + "]", true);
 
 #if HAP_DEBUG
 	LogD(response, true);	
@@ -1307,9 +1309,7 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 	if (bytesSent < encryptedLen) {
 		LogE( F("[ERROR] Encrypted bytes did not match the expected length"), true );
 		result = false;
-	} else {
-		LogD("OK", true);
-	}
+	} 
 
 	hapClient->request.clear();
 	
@@ -1424,7 +1424,7 @@ bool HAPServer::sendResponse(HAPClient* hapClient, TLV8* response, bool chunked)
 	hapClient->client.print( HTTP_KEEP_ALIVE );
 
 #if HAP_DEBUG
-	LogD(">>> Sending " + String(response->size()) + " bytes response to client [" + hapClient->client.remoteIP().toString() + "] : ", true);
+	LogD(">>> Sending " + String(response->size()) + " bytes response to client [" + hapClient->client.remoteIP().toString() + "]", true);
 	response->print();
 #endif
 
@@ -1457,7 +1457,7 @@ bool HAPServer::sendResponse(HAPClient* hapClient, TLV8* response, bool chunked)
 	}
 
 	if (chunked) {
-		hapClient->client.write((uint8_t) 0x30);		// ?? Needed 0x30
+		hapClient->client.write((uint8_t) 0x30);		// 0x30 is needed
 		hapClient->client.write( HTTP_CRLF );		
 	}
 	hapClient->client.write( HTTP_CRLF );
@@ -2271,7 +2271,12 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 	String idStr = hapClient->request.params["id"];
 	//LogE(idStr, true);
 
-	String result = "[";
+	//String result = "[";
+	DynamicJsonBuffer jsonBuffer(HAP_ARDUINOJSON_BUFFER_SIZE);
+
+	JsonObject& root = jsonBuffer.createObject();
+	JsonArray& characteristics = root.createNestedArray("characteristics");
+
 
 	do {
 		int curPos = 0;
@@ -2297,7 +2302,51 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 		//int error_code = HAP_STATUS_SUCCESS;
 		//int errorOccured = false;
 
-		HAPAccessory *a = _accessorySet->accessoryWithAID(aid);
+		String value = getValueForCharacteristics(aid, iid);
+
+
+		JsonObject& characteristics_0 = characteristics.createNestedObject();
+		characteristics_0["aid"] = aid;
+		characteristics_0["iid"] = iid;
+		characteristics_0["value"] = value;
+
+
+		idStr = idStr.substring(endIndex + 1); 
+	} while ( idStr.length() > 0 );
+
+	// result += "]";
+
+	// String d = "characteristics";
+	// result = HAPHelper::dictionaryWrap(&d, &result, 1);
+
+	// LogV(">>> Sending result: ", false);
+	// LogD(result, true);
+	// sendEncrypt(hapClient, HTTP_200, result);
+
+
+		Serial.println("-> Serial:");
+		root.prettyPrintTo(Serial);
+			
+		String response;			
+		root.printTo(response);
+
+
+		Serial.println("String:");
+		Serial.println(response);
+
+       	sendEncrypt(hapClient, EVENT_200, response, false);
+
+
+	LogV("OK", true);
+
+}
+
+
+String HAPServer::getValueForCharacteristics(int aid, int iid){
+		
+		HAPAccessory *a = _accessorySet->accessoryWithAID(aid);		
+		String result = "";
+
 		if (a == NULL) {
 
 			LogE("[ERROR] Accessory with aid: ", false);
@@ -2306,7 +2355,7 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
     		LogE(String(HAP_STATUS_RESOURCE_NOT_FOUND), true);
 
     		//error_code = HAP_STATUS_RESOURCE_NOT_FOUND;
-    		//errorOccured = true;			
+    		//errorOccured = true;		    			
 		} 
 		else {
 
@@ -2321,55 +2370,31 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
     			LogE(String(HAP_STATUS_RESOURCE_NOT_FOUND), true);
 			} else {
 
-				LogD( F("<<< Asking for one characteristics: ") , false);
-				LogD(String(aid), false);
-				LogD(String(" . ") ,false);
-				LogD(String(iid), true);
+				// LogD( F("<<< Asking for one characteristics: ") , false);
+				// LogD(String(aid), false);
+				// LogD(String(" . ") ,false);
+				// LogD(String(iid), true);
 
 
-				char c1[3], c2[3];
-				sprintf(c1, "%d", aid);
-				sprintf(c2, "%d", iid);
-				String s[3] = {String(c1), String(c2), c->value()};
-				String k[3] = {"aid", "iid", "value"};
-				if (result.length() != 1) {
-					result += ",";
-				}
+				// char c1[3], c2[3];
+				// sprintf(c1, "%d", aid);
+				// sprintf(c2, "%d", iid);
+				// String s[3] = {String(c1), String(c2), c->value()};
+				// String k[3] = {"aid", "iid", "value"};
+				// if (result.length() != 1) {
+				// 	result += ",";
+				// }
 
-				String _result = HAPHelper::dictionaryWrap(k, s, 3);
-				result += _result;
+				// String _result = HAPHelper::dictionaryWrap(k, s, 3);
+				// result += _result;
+				// return result;
 
+				return String(c->value());
 			}			
 
 		}
 
-
-		idStr = idStr.substring(endIndex + 1); 
-	} while ( idStr.length() > 0 );
-
-	result += "]";
-
-	String d = "characteristics";
-	result = HAPHelper::dictionaryWrap(&d, &result, 1);
-
-	LogV(">>> Sending result: ", false);
-	LogD(result, true);
-	sendEncrypt(hapClient, HTTP_200, result);
-
-	LogV("OK", true);
-
-}
-
-bool HAPServer::containsNestedKey(const JsonObject& obj, const char* key) {
-    for (const JsonPair& pair : obj) {
-        if (!strcmp(pair.key, key))
-            return true;
-
-        if (containsNestedKey(pair.value.as<JsonObject>(), key)) 
-            return true;
-    }
-
-    return false;
+	return "";
 }
 
 
@@ -2405,7 +2430,7 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
     	int aid = chr["aid"].as<int>();
     	int iid = chr["iid"].as<int>();
 
-    	bool isEvent = containsNestedKey(chr, "ev");
+    	bool isEvent = HAPHelper::containsNestedKey(chr, "ev");
     	String value = "";
 
     	int error_code = HAP_STATUS_SUCCESS;
@@ -2547,6 +2572,9 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
         	Serial.println("value: " + String(eventParam.value));
 
 
+        	String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);
+
+#if 1
         	const size_t bufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(3);
 			DynamicJsonBuffer jsonBuffer(bufferSize);
 
@@ -2557,16 +2585,17 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 			JsonObject& characteristics_0 = characteristics.createNestedObject();
 			characteristics_0["aid"] = eventParam.aid;
 			characteristics_0["iid"] = eventParam.iid;
-			characteristics_0["value"] = eventParam.value;
+			characteristics_0["value"] = value;
 
-			//Serial.println("-> Serial:");
-			//root.prettyPrintTo(Serial);
+			Serial.println("-> Serial:");
+			root.prettyPrintTo(Serial);
 			
 			String response;			
 			root.printTo(response);
-			
-			//Serial.println("String:");
-			//Serial.println(response);
+#endif
+
+			Serial.println("String:");
+			Serial.println(response);
 
         	sendEncrypt(eventParam.hapClient, EVENT_200, response, false);
         }
