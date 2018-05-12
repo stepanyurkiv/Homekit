@@ -141,7 +141,6 @@ bool HAPServer::begin() {
 	}
 
 
-
 	LogV( F("Setup accessory ..."), false);
 	_accessorySet->setModelName(HAP_HOSTNAME);
 	_accessorySet->setConfigurationNumber(HAP_CONFIGURATION_NUMBER);
@@ -151,20 +150,18 @@ bool HAPServer::begin() {
 	LogV("OK", true);
 
 
-
-
 #if HAP_UPDATE_SERVER
 
-	/*
-	 * Starting Arduino OTA
-	 */
+	//
+	// Starting Arduino OTA
+	//
 	LogV( F("Starting Arduino OTA ..."), false);
 	_updater.begin();
 	LogV( F("OK"), true);
 
-	/*
-	 * Looking for Update on AWS
-	 */
+	//
+	// Looking for Update on AWS
+	//
 	LogV( F("Check for web update ..."), false);
 	//_updater.setLocalVersion( &_firmware.version );
 #if SSL_ENABLED
@@ -195,11 +192,57 @@ bool HAPServer::begin() {
 
 #endif
 
-	LogV( F("Starting Webserver ..."), false);
+  	// 
+  	// Loading plugins
+  	// 
+  	LogI( F("Loading plugins ..."), true);
+
+	auto &factory = HAPPluginFactory::Instance();        
+    std::vector<String> names = factory.names();    
+
+    for(std::vector<String>::iterator it = names.begin(); it != names.end(); ++it) {
+    	//Serial.println(*it);
+    	auto plugin = factory.getPlugin(*it);
+
+    	if ( plugin->isEnabled()) {
+
+			LogI("   - ENABLED  " + plugin->name(), false);
+    		LogD(" (v" + String(plugin->version()) + ")", false);	
+    		LogD(" of type: " + String(plugin->type()), false);
+    		LogI("", true);
+
+	    	if ( plugin->type() == HAP_PLUGIN_TYPE_ACCESSORY) {
+	    		HAPAccessory *accessory = plugin->init();
+	    		_accessorySet->addAccessory(accessory);    		
+	    	}
+
+	    	if (plugin->interval() > 0 && plugin->interval() < _minimalPluginInterval) {
+	    		_minimalPluginInterval = plugin->interval();	
+	    	}
+	    	
+	    	_plugins.push_back(std::move(plugin));
+    	} else {
+    		LogW("   - DISABLED " + plugin->name(), false);
+    		LogD(" (v" + String(plugin->version()) + ")", false);	
+    		LogD(" of type: " + String(plugin->type()), false);
+    		LogW("", true);
+    	}
+	}
+
+
+	//
+	// Starting HAP server
+	// 
+	LogV( F("Starting HAP server ..."), false);
 	_server.begin();
 	_server.setNoDelay(true);
 	LogV(F("OK"), true);
   	
+
+
+	// 
+	// Bonjour
+	// 
 
 	// Set up mDNS responder:
 	// - first argument is the domain name, in this example
@@ -222,42 +265,11 @@ bool HAPServer::begin() {
 
 	LogV(F("OK"), true);
 
-	LogI( F("Loading plugins ..."), true);
-
-	auto &factory = HAPPluginFactory::Instance();        
-    std::vector<String> names = factory.names();    
-
-    for(std::vector<String>::iterator it = names.begin(); it != names.end(); ++it) {
-    	//Serial.println(*it);
-    	auto plugin = factory.getPlugin(*it);
-
-    	//Serial.println(String(plugin->isEnabled()) + ": " + plugin->name() + " - " + String(plugin->type()));
 
 
-    	if ( plugin->isEnabled()) {
-
-			LogI("   - ENABLED  " + plugin->name(), false);
-    		// LogV(" enabled: " + String(plugin->isEnabled()), false);
-    		LogI(" of type: " + String(plugin->type()), true);
-
-
-	    	if ( plugin->type() == HAP_PLUGIN_TYPE_ACCESSORY) {
-	    		HAPAccessory *accessory = plugin->init();
-	    		_accessorySet->addAccessory(accessory);    		
-	    	}
-
-	    	if (plugin->interval() > 0 && plugin->interval() < _minimalPluginInterval) {
-	    		_minimalPluginInterval = plugin->interval();	
-	    	}
-	    	
-	    	_plugins.push_back(std::move(plugin));
-    	} else {
-    		LogW("   - DISABLED " + plugin->name(), false);
-    		// LogW(" enabled: " + String(plugin->isEnabled()), false);
-    		LogW(" of type: " + String(plugin->type()), true);
-    	}
-	}
-
+	// 
+	// QR Code generation
+	// 
 
 #if HAP_GENERATE_XHM	
 
@@ -296,10 +308,18 @@ bool HAPServer::begin() {
 
 #endif
 
-	LogI( F("OK"), true);
+
+	// 
+	// Startup completed
+	// 
+	// LogI( F("OK"), true);
 	LogI("Homekit pin code: ", false);
 	LogI(_accessorySet->pinCode(), true);
+
+	
 	LogD(_accessorySet->describe(), true);    
+
+
 
 	return true;
 }
@@ -507,8 +527,7 @@ void HAPServer::handleClientDisconnect(HAPClient hapClient) {
 void HAPServer::handleClientState(HAPClient* hapClient) {
 	switch(hapClient->state) {
 		case CLIENT_STATE_DISCONNECTED:
-			LogD( F( ">>> client disconnected"), true );
-
+			LogV( ">>> client [" + hapClient->client.remoteIP().toString() + "] disconnected", true );
 			handleClientDisconnect( *hapClient );
 
 			break;
@@ -1886,7 +1905,7 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	updateServiceTxt();
 	
 	LogV("OK", true);
-	LogV(">>> Pairing complete!", true);
+	LogI(">>> Pairing with client [" + hapClient->client.remoteIP().toString() + "] complete!", true);
 
     return true;
 }
@@ -1900,7 +1919,7 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 
 
 	if ( !_accessorySet->isPaired ) {
-		LogW( F("[WARNING] Attempt to verify unpaired accessory!"), true);
+		LogW( F("\n[WARNING] Attempt to verify unpaired accessory!"), true);
 		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M2);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
         
@@ -2250,7 +2269,7 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 	hapClient->isEncrypted = true;
 	
 	LogV("OK", true);
-	LogV(">>> Verification complete!", true);
+	LogI(">>> Verification with client [" + hapClient->client.remoteIP().toString() + "] complete!", true);
 
 	return true;
 }
@@ -2303,12 +2322,23 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 		//int errorOccured = false;
 
 		String value = getValueForCharacteristics(aid, iid);
+		Serial.print("value: ");
+		Serial.println(value);
 
 
 		JsonObject& characteristics_0 = characteristics.createNestedObject();
 		characteristics_0["aid"] = aid;
 		characteristics_0["iid"] = iid;
-		characteristics_0["value"] = value;
+
+
+		if (value == "true"){
+			characteristics_0["value"] = 1;
+		} else if (value == "false"){
+			characteristics_0["value"] = 0;
+		} else {
+			characteristics_0["value"] = value;	
+		}
+		
 
 
 		idStr = idStr.substring(endIndex + 1); 
@@ -2322,19 +2352,19 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 	// LogV(">>> Sending result: ", false);
 	// LogD(result, true);
 	// sendEncrypt(hapClient, HTTP_200, result);
-
-
-		Serial.println("-> Serial:");
-		root.prettyPrintTo(Serial);
 			
 		String response;			
 		root.printTo(response);
 
+#if 0
+		Serial.println("-> Serial:");
+		root.prettyPrintTo(Serial);
 
 		Serial.println("String:");
 		Serial.println(response);
+#endif
 
-       	sendEncrypt(hapClient, EVENT_200, response, false);
+       	sendEncrypt(hapClient, HTTP_200, response, false);
 
 
 	LogV("OK", true);
@@ -2342,10 +2372,15 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 }
 
 
-String HAPServer::getValueForCharacteristics(int aid, int iid){
+String HAPServer::getValueForCharacteristics(int aid, int iid){		
+	characteristics *c = getCharacteristics(aid, iid);
+	return String(c->value());
+}
+
+
+characteristics* HAPServer::getCharacteristics(int aid, int iid){
+	HAPAccessory *a = _accessorySet->accessoryWithAID(aid);		
 		
-		HAPAccessory *a = _accessorySet->accessoryWithAID(aid);		
-		String result = "";
 
 		if (a == NULL) {
 
@@ -2370,31 +2405,12 @@ String HAPServer::getValueForCharacteristics(int aid, int iid){
     			LogE(String(HAP_STATUS_RESOURCE_NOT_FOUND), true);
 			} else {
 
-				// LogD( F("<<< Asking for one characteristics: ") , false);
-				// LogD(String(aid), false);
-				// LogD(String(" . ") ,false);
-				// LogD(String(iid), true);
-
-
-				// char c1[3], c2[3];
-				// sprintf(c1, "%d", aid);
-				// sprintf(c2, "%d", iid);
-				// String s[3] = {String(c1), String(c2), c->value()};
-				// String k[3] = {"aid", "iid", "value"};
-				// if (result.length() != 1) {
-				// 	result += ",";
-				// }
-
-				// String _result = HAPHelper::dictionaryWrap(k, s, 3);
-				// result += _result;
-				// return result;
-
-				return String(c->value());
+				return c;
 			}			
 
 		}
 
-	return "";
+	return nullptr;
 }
 
 
@@ -2470,6 +2486,8 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 
 				if ( isEvent ) {
 					isEvent = true;
+
+
 					Serial.print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> NESTED EVENT: ");
 					Serial.println(isEvent);
 					Serial.println(chr["ev"].as<String>());
@@ -2480,6 +2498,7 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 					LogE("!!!!!!!!!!!!!! ADDiNG EVENT 4!!!", true);
 					LogE("!!!!!!!!!!!!!! ADDiNG EVENT 5!!!", true);
 					LogE("!!!!!!!!!!!!!! ADDiNG EVENT 6!!!", true);
+
 
 					struct HAPEvent event = HAPEvent(hapClient, aid, iid, chr["ev"].as<String>());					
 
@@ -2560,21 +2579,14 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
         LogI(eventParam.value, true);
 
         if (eventCode == EventManager::kEventEvent) {
-
-
-        	//
-        	// Attention! 
-        	// it passes "ev", not the value
-        	// --> get the value for the aid and iid of the charact.
-
+#if 0
         	Serial.println("aid: " + String(eventParam.aid));
         	Serial.println("iid: " + String(eventParam.iid));        	
         	Serial.println("value: " + String(eventParam.value));
+#endif
+        	String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);        	
 
 
-        	String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);
-
-#if 1
         	const size_t bufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(3);
 			DynamicJsonBuffer jsonBuffer(bufferSize);
 
@@ -2585,19 +2597,32 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 			JsonObject& characteristics_0 = characteristics.createNestedObject();
 			characteristics_0["aid"] = eventParam.aid;
 			characteristics_0["iid"] = eventParam.iid;
-			characteristics_0["value"] = value;
-
-			Serial.println("-> Serial:");
-			root.prettyPrintTo(Serial);
 			
+			if (value == "true") {
+				characteristics_0["value"] = 1;
+			} else if (value == "false") {
+				characteristics_0["value"] = 0;
+			} else {
+				characteristics_0["value"] = value;	
+			}
+			
+
 			String response;			
 			root.printTo(response);
-#endif
+
+#if 0
+			Serial.println("-> Serial:");
+			root.prettyPrintTo(Serial);
 
 			Serial.println("String:");
 			Serial.println(response);
-
-        	sendEncrypt(eventParam.hapClient, EVENT_200, response, false);
+#endif
+			if ( eventParam.hapClient->client.connected() ){
+				sendEncrypt(eventParam.hapClient, EVENT_200, response, false);	
+			} else {
+				LogW("[WARNING] No client available to send the event to!", true);
+			}
+        	
         }
 };
 
@@ -2609,7 +2634,7 @@ String HAPServer::versionString(){
 void HAPServer::__setFirmware(const char* name, const char* version) {
 
 	if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
-		LogE( F("ERROR: Either the name or version string is too long"), true);
+		LogE( F("[ERROR] Either the name or version string is too long"), true);
 		return;  // never reached, here for clarity
 	}
 
@@ -2625,7 +2650,7 @@ void HAPServer::__setFirmware(const char* name, const char* version) {
 void HAPServer::__setBrand(const char* brand) {
 
 	if (strlen(brand) + 1 - 10 > MAX_BRAND_LENGTH) {
-		LogE(F("ERROR: The brand string is too long"), true);
+		LogE(F("[ERROR] The brand string is too long"), true);
 		return;  // never reached, here for clarity
 	}
 

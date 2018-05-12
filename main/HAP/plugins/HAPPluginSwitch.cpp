@@ -55,7 +55,7 @@ HAPAccessory* HAPPluginSwitch::init(){
 	LogD("\nInitializing plugin: HAPPluginSwitch ...", false);
 
 	HAPAccessory *accessory = new HAPAccessory();
-	HAPAccessory::addInfoServiceToAccessory(accessory, "Builtin Switch", "ACME", "Swtich 1", "123123123", &identifySwitch, version() );
+	HAPAccessory::addInfoServiceToAccessory(accessory, "Builtin Switch", "ACME", "Switch 1", "123123123", &identifySwitch, version() );
 
     service = new HAPService(serviceType_switch);
     accessory->addService(service);
@@ -79,14 +79,7 @@ HAPAccessory* HAPPluginSwitch::init(){
 
 
 void HAPPluginSwitch::setValue(String oldValue, String newValue){
-    LogW("Setting Switch oldValue: " + oldValue + " -> newValue: " + newValue, true);
-    powerState->setValue(newValue);
-
-    if (newValue == "true"){
-        _isOn = true;
-    } else {
-        _isOn = false;
-    }
+    setValue(charType_on, oldValue, newValue);
 }
 
 void HAPPluginSwitch::setValue(uint8_t type, String oldValue, String newValue){
@@ -94,7 +87,7 @@ void HAPPluginSwitch::setValue(uint8_t type, String oldValue, String newValue){
     if (type == charType_on) {
         powerState->setValue(newValue);
 
-        if (newValue == "true"){
+        if (newValue == "true" || newValue == String(1) ){
             _isOn = true;
         } else {
             _isOn = false;
@@ -105,7 +98,7 @@ void HAPPluginSwitch::setValue(uint8_t type, String oldValue, String newValue){
 
 
 String HAPPluginSwitch::getValue(){
-    return powerState->value();
+    return getValue(charType_on);
 }
 
 String HAPPluginSwitch::getValue(uint8_t type){

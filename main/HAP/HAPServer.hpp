@@ -262,6 +262,7 @@ private:
 	
 
 	String getValueForCharacteristics(int aid, int iid);
+	characteristics* getCharacteristics(int aid, int iid);
 
 
 	const char* __HOMEKIT_SIGNATURE;

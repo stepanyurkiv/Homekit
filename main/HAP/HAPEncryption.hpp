@@ -17,7 +17,7 @@
 #define HAP_ENCRYPTION_HMAC_SIZE			16		// Don't change!
 #define HAP_ENCRYPTION_KEY_SIZE				32		// Don't change!
 
-#define HAP_ENCRYPTION_DEBUG				1		// Be careful, it will print all keys on console
+#define HAP_ENCRYPTION_DEBUG				0		// Be careful, it will print all keys on console
 #define HAP_ENCRYPTION_EXIT_ON_FAILURE 		0		// 0 = ignore 
 													// 1 = Don't ignore and return failure
 

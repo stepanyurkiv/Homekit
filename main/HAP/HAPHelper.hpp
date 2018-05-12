@@ -34,11 +34,11 @@ public:
 	// } HAPBit32to8Converter;
 
 	// DEPRECATED
-	 static String getValue(String data, char separator, int index);	
-	 static byte* hexToBin(const char* string);
-	 static void binToHex(const unsigned char * in, size_t insz, char * out, size_t outsz);
-	 static char* toHex(const unsigned char * in, size_t insz);
-	 static void prependZeros(char *dest, const char *src, uint8_t width); // -> moved to encryption
+	 static String getValue(String data, char separator, int index) __attribute__ ((deprecated));	
+	 static byte* hexToBin(const char* string) __attribute__ ((deprecated));
+	 static void binToHex(const unsigned char * in, size_t insz, char * out, size_t outsz) __attribute__ ((deprecated));
+	 static char* toHex(const unsigned char * in, size_t insz) __attribute__ ((deprecated));
+	 static void prependZeros(char *dest, const char *src, uint8_t width) __attribute__ ((deprecated)); // -> moved to encryption
 	
 
 
