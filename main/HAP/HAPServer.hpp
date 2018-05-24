@@ -115,10 +115,8 @@ public:
 	static uint32_t timestamp();
 #endif
 
-
-	String versionString();	
-
-
+	String versionString();
+	bool isPaired();
 
 protected:
 

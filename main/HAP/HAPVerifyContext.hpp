@@ -27,9 +27,14 @@ struct HAPLongTermContext {
 	HAPLongTermContext() 
 	: publicKeyLength(ED25519_PUBLIC_KEY_LENGTH)
 	, privateKeyLength(ED25519_PRIVATE_KEY_LENGTH) {
-		//publicKey = (uint8_t*) malloc(sizeof(uint8_t) * publicKeyLength);
-		//privateKey = (uint8_t*) malloc(sizeof(uint8_t) * privateKeyLength);
-	};
+		publicKey = (uint8_t*) malloc(sizeof(uint8_t) * publicKeyLength);
+		privateKey = (uint8_t*) malloc(sizeof(uint8_t) * privateKeyLength);
+	}
+
+	~HAPLongTermContext(){
+		free(publicKey);
+		free(privateKey);
+	}
 };
 
 
@@ -74,7 +79,7 @@ struct HAPVerifyContext {
 		sessionKey = (uint8_t*) malloc(sizeof(uint8_t) * sessionKeyLength);
 		accessoryLTPK = (uint8_t*) malloc(sizeof(uint8_t) * accessoryLTPKLength);
 		deviceLTPK = (uint8_t*) malloc(sizeof(uint8_t) * deviceLTPKLength);
-	};
+	}
 
 	~HAPVerifyContext(){
 		free(secret);

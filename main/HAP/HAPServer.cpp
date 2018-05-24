@@ -38,14 +38,19 @@
 #include "curve25519.h"
 #include "ed25519.h"
 
-#define AAD_LENGTH 2
 
 #define IS_BIG_ENDIAN (*(uint16_t *)"\0\xff" < 0x100)
+
+#define HAP_RESET_EEPROM 0
+
 
 //
 // init static variables
 //
 struct tm HAPServer::_timeinfo;
+
+
+
 
 HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 :  _server(port)
@@ -117,6 +122,61 @@ bool HAPServer::begin() {
 #endif			
 
 
+	LogV("Loading settings ...", false);
+
+	LogV("OK", true);
+
+
+	// Todo: Move pairings to accessorySet
+	LogV("Loading pairings ...", false);	
+	if (_pairings.begin()) {
+#if HAP_RESET_EEPROM
+		LogV("OK", true);
+
+		LogV("Reset EEPROM ...", false);
+		_pairings.resetEEPROM();
+		LogV("OK", true);
+#endif
+		_pairings.load();
+		
+		// if (_pairings.size() > 0) {
+		// 	// Set is paired to true
+		// 	_accessorySet->isPaired = true;
+		// }	
+
+	} 
+	LogV("OK", true);
+	LogI("Loaded " + String(_pairings.size()) + " pairings from EEPROM!", true);
+
+#if HAP_DEBUG
+
+	_pairings.print();
+
+#endif
+
+
+	if ( isPaired() ){
+		LogV("Loading long term keys ...", false);	
+		_longTermContext = (struct HAPLongTermContext*) calloc(1, sizeof(struct HAPLongTermContext));
+		if (_longTermContext == NULL) {
+			LogE( F("[ERROR] Initializing struct _longTermContext failed!"), true);
+			return false;
+		}
+	
+		_longTermContext->publicKey = (uint8_t*) malloc(sizeof(uint8_t) * ED25519_PUBLIC_KEY_LENGTH);
+		_longTermContext->publicKeyLength = ED25519_PUBLIC_KEY_LENGTH;
+		_longTermContext->privateKey = (uint8_t*) malloc(sizeof(uint8_t) * ED25519_PRIVATE_KEY_LENGTH);
+		_longTermContext->privateKeyLength = ED25519_PRIVATE_KEY_LENGTH;
+
+		_pairings.saveLTPK(_longTermContext->publicKey);
+ 		_pairings.saveLTSK(_longTermContext->privateKey);
+
+		LogV("OK", true);
+	}
+
+
+
+
 	LogV( F("\nStarting event manager ..."), false);
   	listenerMemberFunction2.mObj = this;
   	listenerMemberFunction2.mf = &HAPServer::handleEvents;
@@ -127,11 +187,7 @@ bool HAPServer::begin() {
 	LogV(F("OK"), true);
 
 
-
-	LogV("Loading settings ...", false);
-
-	LogV("OK", true);
-
+	
 
 	LogV("Starting encrpytion engine ...", false);
 	error_code = HAPEncryption::begin();
@@ -142,6 +198,8 @@ bool HAPServer::begin() {
 	}
 
 
+
+
 	LogV( F("Setup accessory ..."), false);
 	_accessorySet->setModelName(HAP_HOSTNAME);
 	_accessorySet->setConfigurationNumber(HAP_CONFIGURATION_NUMBER);
@@ -149,6 +207,8 @@ bool HAPServer::begin() {
 	_accessorySet->setPinCode(HAP_PIN_CODE);
 	_accessorySet->begin();
 	LogV("OK", true);
+
+
 
 
 #if HAP_UPDATE_SERVER
@@ -177,6 +237,10 @@ bool HAPServer::begin() {
 	LogV( F("OK - No update available"), true);
 
 #endif
+
+
+
+
 	
 #if HAP_NTP_ENABLED
 	LogV( F("Starting NTP client ..."), false);
@@ -192,6 +256,9 @@ bool HAPServer::begin() {
 
 
 #endif
+
+
+
 
   	// 
   	// Loading plugins
@@ -229,6 +296,9 @@ bool HAPServer::begin() {
     		LogW("", true);
     	}
 	}
+
+
+
 
 
 	//
@@ -318,8 +388,9 @@ bool HAPServer::begin() {
 	LogI(_accessorySet->pinCode(), true);
 
 	
+#if HAP_DEBUG	
 	LogD(_accessorySet->describe(), true);    
-
+#endif
 
 
 	return true;
@@ -370,7 +441,7 @@ bool HAPServer::updateServiceTxt() {
 	// Supports HAP Pairing. This flag is required for all HomeKit accessories.
 	hapTxtData[2].key 		= (char*) "ff";
 	hapTxtData[2].value 	= (char*) malloc(sizeof(char));
-	sprintf(hapTxtData[2].value, "%d", _accessorySet->isPaired);
+	sprintf(hapTxtData[2].value, "%d", isPaired() );
 	
 	// md - model name	
 	hapTxtData[3].key 		= (char*) "md";
@@ -393,7 +464,7 @@ bool HAPServer::updateServiceTxt() {
 	// 0 if paired ??
 	hapTxtData[6].key 		= (char*) "sf";
 	hapTxtData[6].value 	= (char*) malloc(sizeof(char));
-	sprintf(hapTxtData[6].value, "%d", !_accessorySet->isPaired);
+	sprintf(hapTxtData[6].value, "%d", !isPaired() );
 
 	 // ci - Accessory category indicator
 	hapTxtData[7].key 		= (char*) "ci";
@@ -614,8 +685,8 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 	    // uint8_t aad[HAP_AAD_LENGTH];
 	    // aad[0] = (uint8_t) (length >> 8);   // Get upper byte of 16-bit var;
 	    // aad[1] = (uint8_t) length;          // Get lower byte of 16-bit var;
-		uint8_t AAD[AAD_LENGTH];		
-		hapClient->client.readBytes(AAD, AAD_LENGTH);
+		uint8_t AAD[HAP_AAD_LENGTH];		
+		hapClient->client.readBytes(AAD, HAP_AAD_LENGTH);
 		
 		uint16_t trueLength = ((uint16_t)AAD[1] << 8) | AAD[0];
 		int availableSize = hapClient->client.available() - HAP_ENCRYPTION_HMAC_SIZE;	// 16 is the size of the HMAC
@@ -878,7 +949,7 @@ int HAPServer::decrypt(uint8_t* encrypted, int len, char* decrypted, uint8_t** s
 
 char* HAPServer::encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount) {
 
-	char* encrypted = (char*) calloc(1, length + (length / HAP_ENCRYPTION_BUFFER_SIZE + 1) * (AAD_LENGTH + CHACHA20_POLY1305_AUTH_TAG_LENGTH) + 1);
+	char* encrypted = (char*) calloc(1, length + (length / HAP_ENCRYPTION_BUFFER_SIZE + 1) * (HAP_AAD_LENGTH + CHACHA20_POLY1305_AUTH_TAG_LENGTH) + 1);
 
 	uint8_t nonce[12] = {0,};
 	uint8_t* decrypted_ptr = (uint8_t*)message;
@@ -890,18 +961,18 @@ char* HAPServer::encrypt(uint8_t *message, size_t length, int* encrypted_len, ui
 		int chunk_len = (length < HAP_ENCRYPTION_BUFFER_SIZE) ? length : HAP_ENCRYPTION_BUFFER_SIZE;
 		length -= chunk_len;
 
-		uint8_t aad[AAD_LENGTH];
+		uint8_t aad[HAP_AAD_LENGTH];
 		aad[0] = chunk_len % 256;
 		aad[1] = chunk_len / 256;
 
-		memcpy(encrypted_ptr, aad, AAD_LENGTH);
-		encrypted_ptr += AAD_LENGTH;
-		*encrypted_len += AAD_LENGTH;
+		memcpy(encrypted_ptr, aad, HAP_AAD_LENGTH);
+		encrypted_ptr += HAP_AAD_LENGTH;
+		*encrypted_len += HAP_AAD_LENGTH;
 
 		nonce[4] = encryptCount % 256;
 		nonce[5] = encryptCount++ / 256;
 
-		err_code = chacha20_poly1305_encrypt_with_nonce(nonce, key, aad, AAD_LENGTH, decrypted_ptr, chunk_len, encrypted_ptr);
+		err_code = chacha20_poly1305_encrypt_with_nonce(nonce, key, aad, HAP_AAD_LENGTH, decrypted_ptr, chunk_len, encrypted_ptr);
 		if (err_code != 0 ) {
 			LogE("[ERROR] Encrypting failed!", true);
 		}
@@ -1225,7 +1296,7 @@ void HAPServer::handlePreferences(HAPClient* hapClient){
 void HAPServer::handleIdentify(HAPClient* hapClient){
 	LogI( F("<<< Handle /identify: "), true );
 
-	if ( !_accessorySet->isPaired ) {
+	if ( !isPaired() ) {
 		// Send 204
 		hapClient->client.write( HTTP_204 );
 	} else {
@@ -1519,8 +1590,7 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 
 
 	// generate keys if not stored
-	// TODO!
-
+	// TODO:	
 	LogD("\nGenerating key pairs ...", false);
 	_longTermContext->publicKey = (uint8_t*) malloc(sizeof(uint8_t) * ED25519_PUBLIC_KEY_LENGTH);
 	_longTermContext->publicKeyLength = ED25519_PUBLIC_KEY_LENGTH;
@@ -1529,6 +1599,11 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 
  	ed25519_key_generate(_longTermContext->publicKey, _longTermContext->privateKey);
  	LogD("OK", true);
+
+
+ 	_pairings.saveLTPK(_longTermContext->publicKey);
+ 	_pairings.saveLTSK(_longTermContext->privateKey);
+
 
 
  	LogD("Initializing srp ...", false);
@@ -1795,21 +1870,21 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 
 	// Save to Pairings
 	LogD( F("Saving pairing ..."), false);
-#if HAP_DEBUG
-	LogD("\niOS ios_device_pairing_id: ", true);
-	HAPHelper::arrayPrint(ios_device_pairing_id, ios_device_pairing_id_len );
-	LogD("iOS ios_device_ltpk: ", true);
-	HAPHelper::arrayPrint(ios_device_ltpk, ios_device_ltpk_len );
+// #if HAP_DEBUG
+// 	LogD("\niOS ios_device_pairing_id: ", true);
+// 	HAPHelper::arrayPrint(ios_device_pairing_id, ios_device_pairing_id_len );
+// 	LogD("iOS ios_device_ltpk: ", true);
+// 	HAPHelper::arrayPrint(ios_device_ltpk, ios_device_ltpk_len );
 
-	LogD("_pairSetup->keys.privateKey: ", true);
-	HAPHelper::arrayPrint(_longTermContext->privateKey, ED25519_PRIVATE_KEY_LENGTH);
+// 	LogD("_pairSetup->keys.privateKey: ", true);
+// 	HAPHelper::arrayPrint(_longTermContext->privateKey, ED25519_PRIVATE_KEY_LENGTH);
 
-	LogD("_pairSetup->keys.publicKey: ", true);
-	HAPHelper::arrayPrint(_longTermContext->publicKey, ED25519_PUBLIC_KEY_LENGTH);
-#endif
+// 	LogD("_pairSetup->keys.publicKey: ", true);
+// 	HAPHelper::arrayPrint(_longTermContext->publicKey, ED25519_PUBLIC_KEY_LENGTH);
+// #endif
 
 	_pairings.add(ios_device_pairing_id, ios_device_ltpk);
-
+	_pairings.save();	
 	LogD( F("OK"), true);
 	
 	enc_tlv->clear();
@@ -1909,8 +1984,6 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	response.clear();
 	subTLV->clear();
 
-
-	_accessorySet->isPaired = true;
 	updateServiceTxt();
 	
 	LogV("OK", true);
@@ -1927,7 +2000,7 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	TLV8 response;
 
 
-	if ( !_accessorySet->isPaired ) {
+	if ( !isPaired() ) {
 		LogW( F("\n[WARNING] Attempt to verify unpaired accessory!"), true);
 		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M2);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
@@ -1993,8 +2066,6 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 		(uint8_t*)HAPDeviceID::deviceID().c_str(), 17,
 		ios_device_curve_key, ios_device_curve_key_len,
 		&acc_info_len);
-
-
 
 	int acc_signature_length = ED25519_SIGN_LENGTH;
 	uint8_t acc_signature[ED25519_SIGN_LENGTH] = {0,};
@@ -2635,10 +2706,15 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
         }
 };
 
+bool HAPServer::isPaired(){
+	return _pairings.size() > 0;
+}
+
 
 String HAPServer::versionString(){
 	return _firmware.version.toString();
 }
+
 
 void HAPServer::__setFirmware(const char* name, const char* version) {
 
@@ -2666,5 +2742,8 @@ void HAPServer::__setBrand(const char* brand) {
 	strncpy(_brand, brand + 5, strlen(brand) - 10);
 	_brand[strlen(brand) - 10] = '\0';
 }
+
+
+
 
 HAPServer hap;

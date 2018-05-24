@@ -65,6 +65,7 @@
  * Other
  ********************************************************************/
 #define HAP_CONFIGURATION_NUMBER	1		// Internal
+#define HAP_AAD_LENGTH				2
 
 /**
  * Sizes
