@@ -60,7 +60,7 @@ public:
 	HAPVerifyState	verifyState;	
 
 	struct HAPVerifyContext* 		verifyContext;
-	struct HAPEncryptionContext* 	encryptionContext;
+	struct HAPEncryptionContext* 	encryptionContext;	
 
 	bool			isEncrypted;
 

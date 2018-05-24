@@ -23,7 +23,7 @@
 #include "HAPAccessorySet.hpp"
 
 #include "HAPPairSetup.hpp"
-
+#include "HAPVerifyContext.hpp"
 
 #include "HAPLimits.hpp"
 #include "HAPVersion.hpp"
@@ -123,7 +123,7 @@ public:
 protected:
 
 	struct HAPPairSetup* _pairSetup;
-
+	struct HAPLongTermContext* _longTermContext;
 
 	HAPAccessorySet* _accessorySet;
 	std::vector<HAPClient> _clients;

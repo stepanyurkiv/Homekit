@@ -16,10 +16,12 @@
 
 
 struct HAPLongTermContext {
-	uint8_t publicKey[ED25519_PUBLIC_KEY_LENGTH];
+	// uint8_t publicKey[ED25519_PUBLIC_KEY_LENGTH];
+	uint8_t* publicKey;
 	uint8_t publicKeyLength;
 
-	uint8_t privateKey[ED25519_PUBLIC_KEY_LENGTH];
+	// uint8_t privateKey[ED25519_PUBLIC_KEY_LENGTH];
+	uint8_t* privateKey;
 	uint8_t privateKeyLength;
 
 	HAPLongTermContext() 

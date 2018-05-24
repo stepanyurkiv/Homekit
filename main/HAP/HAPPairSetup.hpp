@@ -18,10 +18,10 @@ struct HAPPairSetup {
     
 
     // -> LongTermContext
-    struct {
-        uint8_t* publicKey;
-        uint8_t* privateKey;
-    } keys;
+    // struct {
+    //     uint8_t* publicKey;
+    //     uint8_t* privateKey;
+    // } keys;
 
     
     // -> EncryptionContext

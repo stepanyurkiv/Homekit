@@ -31,6 +31,8 @@ HAPPluginSwitch::HAPPluginSwitch(){
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
     
+    pinMode(BUILTIN_LED, OUTPUT);    
+    digitalWrite(BUILTIN_LED, _isOn); 
 }
 
 void identifySwitch(bool oldValue, bool newValue) {

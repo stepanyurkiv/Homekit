@@ -55,7 +55,8 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 	//	_clients.resize(maxClients);
 	_firmwareSet = false;
 
-	_pairSetup = new struct HAPPairSetup();			
+	_pairSetup = new struct HAPPairSetup();		
+	_longTermContext = new struct HAPLongTermContext();	
 
 	_previousMillis = 0;
 	_minimalPluginInterval = HAP_MINIMAL_PLUGIN_INTERVAL;
@@ -1504,6 +1505,11 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 
 	TLV8 response;
 
+	_longTermContext = (struct HAPLongTermContext*) calloc(1, sizeof(struct HAPLongTermContext));
+	if (_longTermContext == NULL) {
+		LogE( F("[ERROR] Initializing struct _longTermContext failed!"), true);
+		return false;
+	}
 
 	_pairSetup = (struct HAPPairSetup*) calloc(1, sizeof(struct HAPPairSetup));
 	if (_pairSetup == NULL) {
@@ -1516,9 +1522,12 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 	// TODO!
 
 	LogD("\nGenerating key pairs ...", false);
-	_pairSetup->keys.publicKey = (uint8_t*) malloc(sizeof(uint8_t) * ED25519_PUBLIC_KEY_LENGTH);
-	_pairSetup->keys.privateKey = (uint8_t*) malloc(sizeof(uint8_t) * ED25519_PRIVATE_KEY_LENGTH);
- 	ed25519_key_generate(_pairSetup->keys.publicKey, _pairSetup->keys.privateKey);
+	_longTermContext->publicKey = (uint8_t*) malloc(sizeof(uint8_t) * ED25519_PUBLIC_KEY_LENGTH);
+	_longTermContext->publicKeyLength = ED25519_PUBLIC_KEY_LENGTH;
+	_longTermContext->privateKey = (uint8_t*) malloc(sizeof(uint8_t) * ED25519_PRIVATE_KEY_LENGTH);
+	_longTermContext->privateKeyLength = ED25519_PRIVATE_KEY_LENGTH;
+
+ 	ed25519_key_generate(_longTermContext->publicKey, _longTermContext->privateKey);
  	LogD("OK", true);
 
 
@@ -1793,10 +1802,10 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	HAPHelper::arrayPrint(ios_device_ltpk, ios_device_ltpk_len );
 
 	LogD("_pairSetup->keys.privateKey: ", true);
-	HAPHelper::arrayPrint(_pairSetup->keys.privateKey, ED25519_PRIVATE_KEY_LENGTH);
+	HAPHelper::arrayPrint(_longTermContext->privateKey, ED25519_PRIVATE_KEY_LENGTH);
 
 	LogD("_pairSetup->keys.publicKey: ", true);
-	HAPHelper::arrayPrint(_pairSetup->keys.publicKey, ED25519_PUBLIC_KEY_LENGTH);
+	HAPHelper::arrayPrint(_longTermContext->publicKey, ED25519_PUBLIC_KEY_LENGTH);
 #endif
 
 	_pairings.add(ios_device_pairing_id, ios_device_ltpk);
@@ -1815,12 +1824,12 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
     int acc_info_len = 0;
     uint8_t* acc_info = concat3(accessoryx, sizeof(accessoryx), 
             (uint8_t*)HAPDeviceID::deviceID().c_str(), 17, 
-            _pairSetup->keys.publicKey, ED25519_PUBLIC_KEY_LENGTH, &acc_info_len);
+            _longTermContext->publicKey, ED25519_PUBLIC_KEY_LENGTH, &acc_info_len);
 
     LogD( F("\nVerifying signature"), false);
 	int acc_signature_length = ED25519_SIGN_LENGTH;
     uint8_t acc_signature[ED25519_SIGN_LENGTH] = {0,};
-    err_code = ed25519_sign(_pairSetup->keys.publicKey, _pairSetup->keys.privateKey, acc_info, acc_info_len,
+    err_code = ed25519_sign(_longTermContext->publicKey, _longTermContext->privateKey, acc_info, acc_info_len,
             acc_signature, &acc_signature_length);
 
 
@@ -1839,7 +1848,7 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	// Encrypt data
 	TLV8 *subTLV = new TLV8();
 	subTLV->encode(HAP_TLV_TYPE_IDENTIFIER, 17, (uint8_t*)HAPDeviceID::deviceID().c_str()  );
-	subTLV->encode(HAP_TLV_TYPE_PUBLICKEY, ED25519_PUBLIC_KEY_LENGTH, _pairSetup->keys.publicKey);
+	subTLV->encode(HAP_TLV_TYPE_PUBLICKEY, ED25519_PUBLIC_KEY_LENGTH, _longTermContext->publicKey);
 	subTLV->encode(HAP_TLV_TYPE_SIGNATURE, ED25519_SIGN_LENGTH, acc_signature);
 
 	uint8_t* tlv8Data = subTLV->decode();
@@ -1989,7 +1998,7 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 
 	int acc_signature_length = ED25519_SIGN_LENGTH;
 	uint8_t acc_signature[ED25519_SIGN_LENGTH] = {0,};
-	err_code = ed25519_sign(_pairSetup->keys.publicKey, _pairSetup->keys.privateKey, 
+	err_code = ed25519_sign(_longTermContext->publicKey, _longTermContext->privateKey, 
 		acc_info, acc_info_len,
 		acc_signature, &acc_signature_length);
 
