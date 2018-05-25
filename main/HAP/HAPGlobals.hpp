@@ -48,9 +48,9 @@
 
 
 #if HAP_UPDATE_SERVER
-//#define HAP_UPDATE_SERVER_URL 	"192.168.178.151"
-#define HAP_UPDATE_SERVER_URL 		"192.168.178.103"
-#define HAP_UPDATE_SERVER_PORT		5000
+//#define HAP_UPDATE_SERVER_URL 	"192.168.178.151"	
+#define HAP_UPDATE_SERVER_URL 		"192.168.178.103"	// HTTP Server url for updates
+#define HAP_UPDATE_SERVER_PORT		5000				// Update Server port
 #endif
 
 
@@ -68,7 +68,7 @@
 #define HAP_AAD_LENGTH				2
 
 /**
- * Sizes
+ * Limits
  ********************************************************************/
 #if HAP_BUFFERED_SEND
 #define HAP_BUFFER_SEND_SIZE		2048
@@ -77,7 +77,7 @@
 #define HAP_ARDUINOJSON_BUFFER_SIZE 2048
 #define HAP_ENCRYPTION_BUFFER_SIZE 	2048
 
-#define HAP_PAIRINGS_MAX			8		// Number of available pairings 
+#define HAP_PAIRINGS_MAX			16		// Number of available pairings 
 
 
 #endif /* HAPGLOBALS_HPP_ */

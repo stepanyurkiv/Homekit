@@ -82,14 +82,11 @@ public:
 	void save();
 	void resetEEPROM();
 
-
 	void loadLTPK(uint8_t *ltpk);
 	void loadLTSK(uint8_t *ltsk);
 
 	void saveLTPK(uint8_t *ltpk);
 	void saveLTSK(uint8_t *ltsk);
-
-
 
 	void print();
 

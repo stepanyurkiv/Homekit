@@ -41,7 +41,7 @@
 
 #define IS_BIG_ENDIAN (*(uint16_t *)"\0\xff" < 0x100)
 
-#define HAP_RESET_EEPROM 0
+#define HAP_RESET_EEPROM 1
 
 
 //
@@ -130,25 +130,22 @@ bool HAPServer::begin() {
 #if HAP_RESET_EEPROM
 		LogV("OK", true);
 
-		LogV("Reset EEPROM ...", false);
+		LogW("Reset EEPROM ...", false);
 		_pairings.resetEEPROM();
-		LogV("OK", true);
+		LogW("OK", true);
 #endif
-		_pairings.load();
-		
-		// if (_pairings.size() > 0) {
-		// 	// Set is paired to true
-		// 	_accessorySet->isPaired = true;
-		// }	
-
+		_pairings.load();		
 	} 
+
+#if HAP_RESET_EEPROM
+#else	
 	LogV("OK", true);
+#endif
+
 	LogI("Loaded " + String(_pairings.size()) + " pairings from EEPROM!", true);
 
 #if HAP_DEBUG
-
 	_pairings.print();
-
 #endif
 
 
@@ -2478,7 +2475,8 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 			characteristics_0["status"] = errorCode;
 			errorOccured = true;
 		} else {
-			char value[++outSize];
+			// outSize = outSize + 1;
+			char value[outSize];
 			getValueForCharacteristics(aid, iid, value, &outSize);
 
 #if HAP_DEBUG
@@ -2532,7 +2530,7 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 int32_t HAPServer::getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize){
 	characteristics *c = getCharacteristics(aid, iid);
 	if (c != nullptr) {		
-		*outSize = c->value().length();
+		*outSize = c->value().length() + 1;
 		if (out != NULL){
 			 c->value().toCharArray(out, *outSize);	
 		}		
@@ -2785,7 +2783,9 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
         		// TODO:
         		characteristics_0["status"] = errorCode;
         	} else {
-				char value[++outSize];
+
+        		// outSize = outSize + 1;
+				char value[outSize];
 				getValueForCharacteristics(eventParam.aid, eventParam.iid, value, &outSize);
 
 
