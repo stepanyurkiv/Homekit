@@ -685,10 +685,10 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 		uint16_t trueLength = ((uint16_t)AAD[1] << 8) | AAD[0];
 		int availableSize = hapClient->client.available() - HAP_ENCRYPTION_HMAC_SIZE;	// 16 is the size of the HMAC
 
-		Serial.printf("AAD: %02X%02X - %d\n", AAD[0], AAD[1], trueLength);				
-		Serial.printf("availableSize: %d\n", availableSize);
+		// Serial.printf("AAD: %02X%02X - %d\n", AAD[0], AAD[1], trueLength);				
+		// Serial.printf("availableSize: %d\n", availableSize);
 
-		LogD("<<< Need " + String(trueLength) + " bytes and have " + String(availableSize) + " bytes", true);
+		LogD("\n<<< Need " + String(trueLength) + " bytes and have " + String(availableSize) + " bytes", true);
 		while (trueLength > availableSize) {
 			// The packet is bigger than the available data; wait till more comes in
 			delay(1);
@@ -705,8 +705,6 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 	    // < n:    encrypted data according to AEAD algorithm, up to 1024 bytes>
 	    //
 	    // Needs to be incremented each time it is called after the 1st 4 bytes
-		
-    	LogW("VOR decryptCount: " + String(hapClient->encryptionContext->decryptCount), true);
 		int nonce = hapClient->encryptionContext->decryptCount;
 
 		//
@@ -714,8 +712,8 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 		uint8_t cipherText[trueLength];		
 		hapClient->client.readBytes(cipherText, trueLength);
 		
-		Serial.println("cipherText:");
-		HAPHelper::arrayPrint(cipherText, trueLength);
+		// Serial.println("cipherText:");
+		// HAPHelper::arrayPrint(cipherText, trueLength);
 
 
 		// 
@@ -2217,18 +2215,20 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	LogD( F("OK"), true);
 
 
+
 	LogD( F("Encrypting data ..."), false);
-	uint8_t* encryptedData;
-	encryptedData = (uint8_t*)malloc(sizeof(uint8_t) * (tlv8Len + CHACHA20_POLY1305_AUTH_TAG_LENGTH));
-	
-	if (!encryptedData){
-		LogE( F("[ERROR] Malloc of encryptedData failed"), true);		    	
-		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M2);
-		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
+	// uint8_t* encryptedData;
+	// encryptedData = (uint8_t*)malloc(sizeof(uint8_t) * (tlv8Len + CHACHA20_POLY1305_AUTH_TAG_LENGTH));
+	uint8_t encryptedData[tlv8Len + CHACHA20_POLY1305_AUTH_TAG_LENGTH];
+
+	// if (!encryptedData){
+	// 	LogE( F("[ERROR] Malloc of encryptedData failed"), true);		    	
+	// 	response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M2);
+	// 	response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
         
-        sendResponse(hapClient, &response);
-        return false;
-	}
+ //        sendResponse(hapClient, &response);
+ //        return false;
+	// }
 
    	err_code = chacha20_poly1305_encrypt(CHACHA20_POLY1305_TYPE_PV02, sessionKey, NULL, 0, tlv8Data, tlv8Len, encryptedData);
 	if (err_code != 0) {
