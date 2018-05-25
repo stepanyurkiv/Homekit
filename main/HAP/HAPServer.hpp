@@ -22,7 +22,6 @@
 #include "HAPClient.hpp"
 #include "HAPAccessorySet.hpp"
 
-#include "HAPPairSetup.hpp"
 #include "HAPVerifyContext.hpp"
 
 #include "HAPLimits.hpp"
@@ -120,7 +119,9 @@ public:
 
 protected:
 
-	struct HAPPairSetup* _pairSetup;
+	// struct HAPPairSetup* _pairSetup;
+
+	void* _srp;
 	struct HAPLongTermContext* _longTermContext;
 
 	HAPAccessorySet* _accessorySet;
@@ -192,7 +193,7 @@ private:
 
 	bool _firmwareSet;
 
-	//bool beginSRP();
+
 
 
 	//
@@ -259,7 +260,9 @@ private:
 	static bool encode(HAPClient* hapClient);
 	
 
-	String getValueForCharacteristics(int aid, int iid);
+	// String getValueForCharacteristics(int aid, int iid);
+	int32_t getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize);
+
 	characteristics* getCharacteristics(int aid, int iid);
 
 

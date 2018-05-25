@@ -60,9 +60,6 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 	//	_clients.resize(maxClients);
 	_firmwareSet = false;
 
-	_pairSetup = new struct HAPPairSetup();		
-	_longTermContext = new struct HAPLongTermContext();	
-
 	_previousMillis = 0;
 	_minimalPluginInterval = HAP_MINIMAL_PLUGIN_INTERVAL;
 	_accessorySet = new HAPAccessorySet();
@@ -70,7 +67,7 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 
 HAPServer::~HAPServer() {
 	// TODO Auto-generated destructor stub
-
+	delete _accessorySet;
 }
 
 bool HAPServer::begin() {
@@ -1481,11 +1478,19 @@ bool HAPServer::sendResponse(HAPClient* hapClient, TLV8* response, bool chunked)
 		offset += String(HTTP_CRLF).length();
 	}
 
-	// Payload
-	uint8_t *outResponse = response->decode();
-	memcpy(buffer + offset, outResponse, response->size());
-	offset += response->size();
-	free(outResponse);
+
+
+	uint8_t outResponse[response->size()];
+	size_t written = 0;
+
+	response->decode(outResponse, &written);
+	if (written == 0) {
+		LogE("[ERROR] Failed to decode tlv8!", true);
+	}
+
+	memcpy(buffer + offset, outResponse, written);
+	offset += written;
+
 
 	// CR_LF
 	memcpy(buffer + offset, String(HTTP_CRLF).c_str(), String(HTTP_CRLF).length());
@@ -1589,13 +1594,6 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 		return false;
 	}
 
-	_pairSetup = (struct HAPPairSetup*) calloc(1, sizeof(struct HAPPairSetup));
-	if (_pairSetup == NULL) {
-		LogE( F("[ERROR] Initializing struct _pairSetup failed!"), true);
-		return false;
-	}
-
-
 	// generate keys if not stored
 	// TODO:	
 	LogD("\nGenerating key pairs ...", false);
@@ -1614,20 +1612,24 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 
 
  	LogD("Initializing srp ...", false);
-	if (_pairSetup->srp) {
-		srp_cleanup(_pairSetup->srp);
+	if (_srp) {
+		srp_cleanup(_srp);
 	}
 
-	_pairSetup->srp = srp_init(_accessorySet->pinCode());
+	_srp = srp_init(_accessorySet->pinCode());
 	uint8_t host_public_key[SRP_PUBLIC_KEY_LENGTH] = {0,};
 	LogD("OK", true);
 
 	LogD("Generating srp key ...", false);
-	if (srp_host_key_get(_pairSetup->srp, host_public_key) < 0) {
+	if (srp_host_key_get(_srp, host_public_key) < 0) {
 		LogE( F("[ERROR] srp_host_key_get failed"), true);
 		//return HomekitHelper::pairError(HAP_TLV_ERROR_UNKNOWN, acc_msg, acc_msg_length);
 		response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M2);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
+
+		if (_srp) {
+			srp_cleanup(_srp);
+		}
 
 		sendResponse(hapClient, &response);		
 		return false;
@@ -1636,10 +1638,14 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 
 	LogD("Generating salt ...", false);
 	uint8_t salt[SRP_SALT_LENGTH] = {0,};
-	if (srp_salt(_pairSetup->srp, salt) < 0) {
+	if (srp_salt(_srp, salt) < 0) {
 		LogE( F("[ERROR] srp_salt failed"), true);
 		response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M2);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
+
+		if (_srp) {
+			srp_cleanup(_srp);
+		}
 
 		sendResponse(hapClient, &response);
 		return false;
@@ -1686,12 +1692,15 @@ bool HAPServer::handlePairSetupM3(HAPClient* hapClient) {
 
 
 	LogD( F("Generating proof ..."), false);
-	err_code = srp_client_key_set(_pairSetup->srp, device_public_key);
+	err_code = srp_client_key_set(_srp, device_public_key);
 	if (err_code < 0) {
 		LogE( F("[ERROR] srp_client_key_set failed"), true);		
 		response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M4);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_AUTHENTICATION);
         
+        if (_srp) {
+			srp_cleanup(_srp);
+		}
         sendResponse(hapClient, &response);	
         return false;
     }
@@ -1710,12 +1719,17 @@ bool HAPServer::handlePairSetupM3(HAPClient* hapClient) {
 
 
     LogD( F("Verifying device proof ..."), false);
-    err_code = srp_client_proof_verify(_pairSetup->srp, proof);
+    err_code = srp_client_proof_verify(_srp, proof);
     if (err_code < 0) {        
         LogE( F("[ERROR] srp_client_proof_verify failed"), true);		    	
         response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M4);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_AUTHENTICATION);
         
+
+		if (_srp) {
+			srp_cleanup(_srp);
+		}
+
         sendResponse(hapClient, &response);
         return false; 
     }
@@ -1724,12 +1738,16 @@ bool HAPServer::handlePairSetupM3(HAPClient* hapClient) {
 
     LogD( F("Generating accessory proof ..."), false);
     uint8_t acc_srp_proof[SRP_PROOF_LENGTH] = {0,};
-    err_code = srp_host_proof_get(_pairSetup->srp, acc_srp_proof);
+    err_code = srp_host_proof_get(_srp, acc_srp_proof);
     if (err_code < 0) {
         LogE( F("[ERROR] srp_host_proof_get failed"), true);		    	
         response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M4);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_AUTHENTICATION);
 
+
+		if (_srp) {
+			srp_cleanup(_srp);
+		}
         sendResponse(hapClient, &response);
         return false; 
     }
@@ -1761,8 +1779,12 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	TLV8 response;
 
     uint8_t srp_key[SRP_SESSION_KEY_LENGTH] = {0,};
-    srp_host_session_key(_pairSetup->srp, srp_key);
+    srp_host_session_key(_srp, srp_key);
    
+	if (_srp) {
+		srp_cleanup(_srp);
+	}
+
 
     LogD( F("\nDecoding TLV values ..."), false);
 	uint8_t *encrypted_tlv = hapClient->request.tlv.decode(HAP_TLV_TYPE_ENCRYPTED_DATA);
@@ -1806,7 +1828,9 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
     LogD( F("OK"), true);
 
     LogD( F("Decrypting chacha20_poly1305 ..."), false);
-    uint8_t *subtlv = (uint8_t*) malloc(sizeof(uint8_t) * encrypted_tlv_len);
+    // uint8_t *subtlv = (uint8_t*) malloc(sizeof(uint8_t) * encrypted_tlv_len);
+    uint8_t subtlv[encrypted_tlv_len] = {0,};
+
     err_code = chacha20_poly1305_decrypt(CHACHA20_POLY1305_TYPE_PS05, subtlv_key, NULL, 0, encrypted_tlv, encrypted_tlv_len, subtlv);
 
     if (err_code < 0) {
@@ -1823,31 +1847,29 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
     LogD( F("OK"), true);
 
     
-	TLV8 *enc_tlv = new TLV8(); 
-	enc_tlv->encode(subtlv, strlen((char*)subtlv));
+	TLV8 encTLV; 
+	encTLV.encode(subtlv, strlen((char*)subtlv));
 	
 #if HAP_DEBUG	
-	enc_tlv->print();
+	encTLV.print();
     //HAPHelper::arrayPrint(subtlv, strlen((char*)subtlv));
 #endif
 
-
-	// ERROR ??
-	//free(subtlv);
-	//free(encrypted_tlv);
+	// free(subtlv);
+	// free(encrypted_tlv);
 
     uint8_t ios_devicex[HKDF_KEY_LEN] = {0,};
     hkdf_key_get(HKDF_KEY_TYPE_PAIR_SETUP_CONTROLLER, srp_key, SRP_SESSION_KEY_LENGTH, ios_devicex);
 
-    uint8_t* ios_device_pairing_id 		= enc_tlv->decode(HAP_TLV_TYPE_IDENTIFIER);
-    uint8_t ios_device_pairing_id_len 	= enc_tlv->size(HAP_TLV_TYPE_IDENTIFIER);
+    uint8_t* ios_device_pairing_id 		= encTLV.decode(HAP_TLV_TYPE_IDENTIFIER);
+    uint8_t ios_device_pairing_id_len 	= encTLV.size(HAP_TLV_TYPE_IDENTIFIER);
 
-    uint8_t* ios_device_ltpk 			= enc_tlv->decode(HAP_TLV_TYPE_PUBLICKEY);
-    uint8_t  ios_device_ltpk_len 		= enc_tlv->size(HAP_TLV_TYPE_PUBLICKEY);
+    uint8_t* ios_device_ltpk 			= encTLV.decode(HAP_TLV_TYPE_PUBLICKEY);
+    uint8_t  ios_device_ltpk_len 		= encTLV.size(HAP_TLV_TYPE_PUBLICKEY);
 
 
-    uint8_t* ios_device_signature 		= enc_tlv->decode(HAP_TLV_TYPE_SIGNATURE);
-    uint8_t  ios_device_signature_len 	= enc_tlv->size(HAP_TLV_TYPE_SIGNATURE);
+    uint8_t* ios_device_signature 		= encTLV.decode(HAP_TLV_TYPE_SIGNATURE);
+    uint8_t  ios_device_signature_len 	= encTLV.size(HAP_TLV_TYPE_SIGNATURE);
 
 
     int ios_device_info_len = 0;
@@ -1894,7 +1916,9 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	_pairings.save();	
 	LogD( F("OK"), true);
 	
-	enc_tlv->clear();
+	encTLV.clear();
+	// delete enc_tlv;
+
 
 	LogV( "<<< Handle [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 4/4 ...", true);
 	//  _acc_m6_subtlv(srp_key, ps->acc_id, ps->keys.public, ps->keys.private, &acc_subtlv, &acc_subtlv_length);
@@ -1928,27 +1952,36 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	LogD( F("OK"), true);
 
 	// Encrypt data
-	TLV8 *subTLV = new TLV8();
-	subTLV->encode(HAP_TLV_TYPE_IDENTIFIER, 17, (uint8_t*)HAPDeviceID::deviceID().c_str()  );
-	subTLV->encode(HAP_TLV_TYPE_PUBLICKEY, ED25519_PUBLIC_KEY_LENGTH, _longTermContext->publicKey);
-	subTLV->encode(HAP_TLV_TYPE_SIGNATURE, ED25519_SIGN_LENGTH, acc_signature);
+	TLV8 subTLV;
+	subTLV.encode(HAP_TLV_TYPE_IDENTIFIER, 17, (uint8_t*)HAPDeviceID::deviceID().c_str()  );
+	subTLV.encode(HAP_TLV_TYPE_PUBLICKEY, ED25519_PUBLIC_KEY_LENGTH, _longTermContext->publicKey);
+	subTLV.encode(HAP_TLV_TYPE_SIGNATURE, ED25519_SIGN_LENGTH, acc_signature);
 
-	uint8_t* tlv8Data = subTLV->decode();
-	size_t tlv8Len = subTLV->size();
+
+	// TODO NOW:
+	// uint8_t* tlv8Data = subTLV->decode();
+	size_t tlv8Len = subTLV.size();
+	uint8_t tlv8Data[tlv8Len];
+	size_t written = 0;
+
+	subTLV.decode(tlv8Data, &written);
+	if (written == 0) {
+		LogE("[ERROR] Failed to decode subtlv8!", true);
+	}
+	
 
 #if HAP_DEBUG	
-	subTLV->print();
+	subTLV.print();
 	//HAPHelper::arrayPrint(tlv8Data, tlv8Len);
 #endif
 		
 
-	uint8_t* encryptedData;
-	encryptedData = (uint8_t*)malloc(sizeof(uint8_t) * (tlv8Len + CHACHA20_POLY1305_AUTH_TAG_LENGTH));
-	
-
-	if (!encryptedData){
-		LogE( F("[ERROR] Malloc of encryptedData failed"), true);		    	
-	}
+	uint8_t encryptedData[tlv8Len + CHACHA20_POLY1305_AUTH_TAG_LENGTH];
+	// encryptedData = (uint8_t*)malloc(sizeof(uint8_t) * (tlv8Len + CHACHA20_POLY1305_AUTH_TAG_LENGTH));
+	// 
+	// if (!encryptedData){
+	// 	LogE( F("[ERROR] Malloc of encryptedData failed"), true);		    	
+	// }
 
 	LogD( F("Getting session key ..."), false);
 	err_code = hkdf_key_get(HKDF_KEY_TYPE_PAIR_SETUP_ENCRYPT, srp_key, SRP_SESSION_KEY_LENGTH, subtlv_key);
@@ -1958,6 +1991,7 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
         
         sendResponse(hapClient, &response);
+        subTLV.clear();
         return false;
 	}
 	LogD( F("OK"), true);
@@ -1971,6 +2005,7 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
         
         sendResponse(hapClient, &response);
+        subTLV.clear();
         return false;
 	}
 	LogD( F("OK"), true);
@@ -1989,7 +2024,8 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	LogD( F("OK"), true);
 
 	response.clear();
-	subTLV->clear();
+	subTLV.clear();
+	// delete subTLV;
 
 	updateServiceTxt();
 	
@@ -2102,8 +2138,17 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	subTLV->encode(HAP_TLV_TYPE_IDENTIFIER, 17, (uint8_t*)HAPDeviceID::deviceID().c_str()  );
 	subTLV->encode(HAP_TLV_TYPE_SIGNATURE, ED25519_SIGN_LENGTH, acc_signature);
 
-	uint8_t* tlv8Data = subTLV->decode();
 	size_t tlv8Len = subTLV->size();
+
+		// TODO NOW:
+	// uint8_t* tlv8Data = subTLV->decode();
+	uint8_t tlv8Data[subTLV->size()];
+	size_t written = 0;
+
+	subTLV->decode(tlv8Data, &written);
+	if (written == 0) {
+		LogE("[ERROR] Failed to decode subtlv8!", true);
+	}
 
 #if HAP_DEBUG	
 	subTLV->print();
@@ -2175,7 +2220,11 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	sendResponse(hapClient, &response);	
 	LogD( F("OK"), true);
 	response.clear();
+	
 	subTLV->clear();
+	delete subTLV;
+
+
 
 	LogI("OK", true);
 	return true;
@@ -2383,6 +2432,7 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 	JsonObject& root = jsonBuffer.createObject();
 	JsonArray& characteristics = root.createNestedArray("characteristics");
 
+	bool errorOccured = false;
 
 	do {
 		int curPos = 0;
@@ -2400,58 +2450,61 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 		int iid = keyPair.substring(equalIndex + 1).toInt();
 
 		
-		Serial.print(">>>>>>>>>>>>>>>>>>< aid: "); 
-		Serial.print(aid);
-		Serial.print(" - iid: ");
-		Serial.println(iid);
+		// Serial.print(">>>>>>>>>>>>>>>>>>< aid: "); 
+		// Serial.print(aid);
+		// Serial.print(" - iid: ");
+		// Serial.println(iid);
 		
 		//int error_code = HAP_STATUS_SUCCESS;
-		//int errorOccured = false;
+		//
 
-		String value = getValueForCharacteristics(aid, iid);
-		Serial.print("value: ");
-		Serial.println(value);
+		// String value = getValueForCharacteristics(aid, iid);
 
 
 		JsonObject& characteristics_0 = characteristics.createNestedObject();
 		characteristics_0["aid"] = aid;
 		characteristics_0["iid"] = iid;
 
-
-		if (value == "true"){
-			characteristics_0["value"] = 1;
-		} else if (value == "false"){
-			characteristics_0["value"] = 0;
+		size_t outSize = 0;
+		int32_t errorCode = getValueForCharacteristics(aid, iid, NULL, &outSize);
+		if ( errorCode != 0){
+			// TODO:
+			characteristics_0["status"] = errorCode;
+			errorOccured = true;
 		} else {
-			characteristics_0["value"] = value;	
+			char value[outSize];
+			getValueForCharacteristics(aid, iid, value, &outSize);
+
+			if ( strcmp(value, "true") == 0 ) {
+				characteristics_0["value"] = 1;
+			} else if ( strcmp(value, "false") == 0 ) {
+				characteristics_0["value"] = 0;
+			} else {
+				characteristics_0["value"] = value;	
+			}
 		}
 		
-
-
 		idStr = idStr.substring(endIndex + 1); 
 	} while ( idStr.length() > 0 );
 
-	// result += "]";
-
-	// String d = "characteristics";
-	// result = HAPHelper::dictionaryWrap(&d, &result, 1);
-
-	// LogV(">>> Sending result: ", false);
-	// LogD(result, true);
-	// sendEncrypt(hapClient, HTTP_200, result);
-			
-		String response;			
-		root.printTo(response);
+	String response;			
+	root.printTo(response);
 
 #if 0
-		Serial.println("-> Serial:");
-		root.prettyPrintTo(Serial);
+	Serial.println("-> Serial:");
+	root.prettyPrintTo(Serial);
 
-		Serial.println("String:");
-		Serial.println(response);
+	Serial.println("String:");
+	Serial.println(response);
 #endif
 
-       	sendEncrypt(hapClient, HTTP_200, response, false);
+
+	if (errorOccured){
+		sendEncrypt(hapClient, HTTP_400, response, false);
+	} else {
+		sendEncrypt(hapClient, HTTP_200, response, false);	
+	}
+    
 
 
 	LogV("OK", true);
@@ -2459,16 +2512,31 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 }
 
 
-String HAPServer::getValueForCharacteristics(int aid, int iid){		
+// String HAPServer::getValueForCharacteristics(int aid, int iid){		
+// 	characteristics *c = getCharacteristics(aid, iid);
+
+// 	if (c != nullptr) {
+// 		return String(c->value());
+// 	}
+// 	return "--ERROR_OCCURED--";
+// }
+
+int32_t HAPServer::getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize){
 	characteristics *c = getCharacteristics(aid, iid);
-	return String(c->value());
+	if (c != nullptr) {		
+		*outSize = strlen(c->value().c_str());
+		if (out != NULL){
+			 c->value().toCharArray(out, *outSize);	
+		}		
+		return 0;
+	}
+	return HAP_STATUS_RESOURCE_NOT_FOUND;
 }
 
 
 characteristics* HAPServer::getCharacteristics(int aid, int iid){
 	HAPAccessory *a = _accessorySet->accessoryWithAID(aid);		
 		
-
 		if (a == NULL) {
 
 			LogE("[ERROR] Accessory with aid: ", false);
@@ -2477,7 +2545,8 @@ characteristics* HAPServer::getCharacteristics(int aid, int iid){
     		LogE(String(HAP_STATUS_RESOURCE_NOT_FOUND), true);
 
     		//error_code = HAP_STATUS_RESOURCE_NOT_FOUND;
-    		//errorOccured = true;		    			
+    		//errorOccured = true;	
+    		return nullptr;	    			
 		} 
 		else {
 
@@ -2490,6 +2559,7 @@ characteristics* HAPServer::getCharacteristics(int aid, int iid){
 	    		LogE(String(iid), false);
 				LogE(" not found! - ErrorCode: ", false);
     			LogE(String(HAP_STATUS_RESOURCE_NOT_FOUND), true);
+    			return nullptr;
 			} else {
 
 				return c;
@@ -2676,7 +2746,7 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
         	Serial.println("iid: " + String(eventParam.iid));        	
         	Serial.println("value: " + String(eventParam.value));
 #endif
-        	String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);        	
+        	
 
 
         	const size_t bufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(3);
@@ -2689,14 +2759,33 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 			JsonObject& characteristics_0 = characteristics.createNestedObject();
 			characteristics_0["aid"] = eventParam.aid;
 			characteristics_0["iid"] = eventParam.iid;
+
+
+        	// String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);        	
+
+        	size_t outSize = 0;
+        	int32_t errorCode = 0;
+
+        	errorCode = getValueForCharacteristics(eventParam.aid, eventParam.iid, NULL, &outSize);
+        	if ( errorCode != 0){
+        		// TODO:
+        		characteristics_0["status"] = errorCode;
+        	} else {
+				char value[outSize];
+				getValueForCharacteristics(eventParam.aid, eventParam.iid, value, &outSize);
+				if ( strcmp(value, "true") == 0 ) {
+					characteristics_0["value"] = 1;
+				} else if ( strcmp(value, "false") == 0 ) {
+					characteristics_0["value"] = 0;
+				} else {
+					characteristics_0["value"] = value;	
+				}
+        	}
+
+ 
+
 			
-			if (value == "true") {
-				characteristics_0["value"] = 1;
-			} else if (value == "false") {
-				characteristics_0["value"] = 0;
-			} else {
-				characteristics_0["value"] = value;	
-			}
+
 			
 
 			String response;			
@@ -2711,7 +2800,7 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 #endif
 
 			LogV("Sending EVENT to client [" + eventParam.hapClient->client.remoteIP().toString() + "] ...", true);
-			if ( eventParam.hapClient->client.connected() ){
+			if ( eventParam.hapClient->client.connected() ){				
 				sendEncrypt(eventParam.hapClient, EVENT_200, response, false);	
 			} else {
 				LogW("[WARNING] No client available to send the event to!", true);

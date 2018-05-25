@@ -56,7 +56,7 @@ public:
 	bool encode(uint8_t* rawData, size_t dataLen);
 
 	
-	uint8_t* decode() __attribute__ ((deprecated));
+	// uint8_t* decode() __attribute__ ((deprecated));
 	uint8_t* decode(uint8_t type) __attribute__ ((deprecated));
 
 
