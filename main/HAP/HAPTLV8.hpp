@@ -54,11 +54,9 @@ public:
 	bool encode(uint8_t type, size_t length, const byte data);
 	bool encode(uint8_t type, size_t length, const byte* rawData);
 	bool encode(uint8_t* rawData, size_t dataLen);
-
 	
 	// uint8_t* decode() __attribute__ ((deprecated));
 	// uint8_t* decode(uint8_t type) __attribute__ ((deprecated));
-
 
 	void decode(uint8_t* out, size_t *outSize = nullptr);
 	void decode(const uint8_t type, uint8_t* out, size_t *outSize = nullptr);
@@ -66,7 +64,6 @@ public:
 	void addNode( TLV8Entry* ptr);
 	void insertNode( TLV8Entry* ptr);
 	void deleteNode( TLV8Entry* ptr);
-
 
 	void clear();
 	void deleteList( TLV8Entry* ptr);

@@ -1708,7 +1708,7 @@ bool HAPServer::handlePairSetupM3(HAPClient* hapClient) {
         return false;
     }
 
-    decodedLen = 0;
+
     // uint8_t *proof = hapClient->request.tlv.decode(HAP_TLV_TYPE_PROOF);
     uint8_t proof[hapClient->request.tlv.size(HAP_TLV_TYPE_PROOF)];
 	hapClient->request.tlv.decode(HAP_TLV_TYPE_PROOF, proof, &decodedLen);
@@ -1793,10 +1793,16 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 
 
     LogD( F("\nDecoding TLV values ..."), false);
-	uint8_t *encrypted_tlv = hapClient->request.tlv.decode(HAP_TLV_TYPE_ENCRYPTED_DATA);
-	size_t encrypted_tlv_len = hapClient->request.tlv.size(HAP_TLV_TYPE_ENCRYPTED_DATA);
+	// uint8_t *encrypted_tlv = hapClient->request.tlv.decode(HAP_TLV_TYPE_ENCRYPTED_DATA);
 
-	 if (!encrypted_tlv) {
+	size_t decodedLen = 0;
+	size_t encryptedTLVLen = hapClient->request.tlv.size(HAP_TLV_TYPE_ENCRYPTED_DATA);
+
+	uint8_t encryptedTLV[encryptedTLVLen] = {0,};
+	hapClient->request.tlv.decode(HAP_TLV_TYPE_ENCRYPTED_DATA, encryptedTLV, &decodedLen);
+	
+
+	if (decodedLen == 0) {
         LogE( F("[ERROR] Decrypting HAP_TLV_TYPE_ENCRYPTED_DATA failed"), true);		    	
     	response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M6);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_AUTHENTICATION);
@@ -1827,17 +1833,15 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
         
         sendResponse(hapClient, &response);
-
-        // free(encrypted_tlv);
         return false;
     }
     LogD( F("OK"), true);
 
     LogD( F("Decrypting chacha20_poly1305 ..."), false);
     // uint8_t *subtlv = (uint8_t*) malloc(sizeof(uint8_t) * encrypted_tlv_len);
-    uint8_t subtlv[encrypted_tlv_len] = {0,};
+    uint8_t subtlv[encryptedTLVLen] = {0,};
 
-    err_code = chacha20_poly1305_decrypt(CHACHA20_POLY1305_TYPE_PS05, subtlv_key, NULL, 0, encrypted_tlv, encrypted_tlv_len, subtlv);
+    err_code = chacha20_poly1305_decrypt(CHACHA20_POLY1305_TYPE_PS05, subtlv_key, NULL, 0, encryptedTLV, encryptedTLVLen, subtlv);
 
     if (err_code < 0) {
         LogE( F("[PAIR-SETUP M5] [ERROR] Decrypting CHACHA20_POLY1305_TYPE_PS05 failed"), true);		    	
@@ -1846,8 +1850,6 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
         
         sendResponse(hapClient, &response);
 
-        // free(subtlv);
-        // free(encrypted_tlv);
         return false;
     }
     LogD( F("OK"), true);
@@ -1858,24 +1860,56 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	
 #if HAP_DEBUG	
 	encTLV.print();
-    //HAPHelper::arrayPrint(subtlv, strlen((char*)subtlv));
 #endif
-
-	// free(subtlv);
-	// free(encrypted_tlv);
-
+	
     uint8_t ios_devicex[HKDF_KEY_LEN] = {0,};
     hkdf_key_get(HKDF_KEY_TYPE_PAIR_SETUP_CONTROLLER, srp_key, SRP_SESSION_KEY_LENGTH, ios_devicex);
 
-    uint8_t* ios_device_pairing_id 		= encTLV.decode(HAP_TLV_TYPE_IDENTIFIER);
+
+	// TODO NOW: OK
+    // uint8_t* ios_device_pairing_id 		= encTLV.decode(HAP_TLV_TYPE_IDENTIFIER);
     uint8_t ios_device_pairing_id_len 	= encTLV.size(HAP_TLV_TYPE_IDENTIFIER);
+	uint8_t ios_device_pairing_id[ios_device_pairing_id_len] = {0,};
+	encTLV.decode(HAP_TLV_TYPE_IDENTIFIER, ios_device_pairing_id, &decodedLen);	
 
-    uint8_t* ios_device_ltpk 			= encTLV.decode(HAP_TLV_TYPE_PUBLICKEY);
-    uint8_t  ios_device_ltpk_len 		= encTLV.size(HAP_TLV_TYPE_PUBLICKEY);
+	if (decodedLen == 0) {
+		LogE( F("[PAIR-SETUP M5] [ERROR] HAP_TLV_TYPE_IDENTIFIER failed "), true);		    	
+		response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M6);
+		response.encode(TLV_TYPE_ERROR, 1, HAP_ERROR_AUTHENTICATON);
+
+		sendResponse(hapClient, &response);
+		return false;
+	}
 
 
-    uint8_t* ios_device_signature 		= encTLV.decode(HAP_TLV_TYPE_SIGNATURE);
+	uint8_t  ios_device_ltpk_len 		= encTLV.size(HAP_TLV_TYPE_PUBLICKEY);
+    // uint8_t* ios_device_ltpk 			= encTLV.decode(HAP_TLV_TYPE_PUBLICKEY);
+	uint8_t ios_device_ltpk[ios_device_ltpk_len] = {0,};
+	encTLV.decode(HAP_TLV_TYPE_PUBLICKEY, ios_device_ltpk, &decodedLen);	
+
+	if (decodedLen == 0) {
+		LogE( F("[PAIR-SETUP M5] [ERROR] HAP_TLV_TYPE_PUBLICKEY failed "), true);		    	
+		response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M6);
+		response.encode(TLV_TYPE_ERROR, 1, HAP_ERROR_AUTHENTICATON);
+
+		sendResponse(hapClient, &response);
+		return false;
+	}
+    
+
     uint8_t  ios_device_signature_len 	= encTLV.size(HAP_TLV_TYPE_SIGNATURE);
+    // uint8_t* ios_device_signature 		= encTLV.decode(HAP_TLV_TYPE_SIGNATURE);
+	uint8_t ios_device_signature[ios_device_signature_len] = {0,};
+	encTLV.decode(HAP_TLV_TYPE_SIGNATURE, ios_device_signature, &decodedLen);	
+
+	if (decodedLen == 0) {
+		LogE( F("[PAIR-SETUP M5] [ERROR] HAP_TLV_TYPE_SIGNATURE failed "), true);		    	
+		response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M6);
+		response.encode(TLV_TYPE_ERROR, 1, HAP_ERROR_AUTHENTICATON);
+
+		sendResponse(hapClient, &response);
+		return false;
+	}
 
 
     int ios_device_info_len = 0;
@@ -1964,8 +1998,6 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	subTLV.encode(HAP_TLV_TYPE_SIGNATURE, ED25519_SIGN_LENGTH, acc_signature);
 
 
-	// TODO NOW:
-	// uint8_t* tlv8Data = subTLV->decode();
 	size_t tlv8Len = subTLV.size();
 	uint8_t tlv8Data[tlv8Len];
 	size_t written = 0;
@@ -1983,11 +2015,6 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 		
 
 	uint8_t encryptedData[tlv8Len + CHACHA20_POLY1305_AUTH_TAG_LENGTH];
-	// encryptedData = (uint8_t*)malloc(sizeof(uint8_t) * (tlv8Len + CHACHA20_POLY1305_AUTH_TAG_LENGTH));
-	// 
-	// if (!encryptedData){
-	// 	LogE( F("[ERROR] Malloc of encryptedData failed"), true);		    	
-	// }
 
 	LogD( F("Getting session key ..."), false);
 	err_code = hkdf_key_get(HKDF_KEY_TYPE_PAIR_SETUP_ENCRYPT, srp_key, SRP_SESSION_KEY_LENGTH, subtlv_key);
@@ -2023,7 +2050,6 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 
 #if HAP_DEBUG	
 	response.print();
-	//HAPHelper::arrayPrint(encryptedData, tlv8Len + CHACHA20_POLY1305_AUTH_TAG_LENGTH);
 #endif
 
 	sendResponse(hapClient, &response);	
@@ -2076,9 +2102,26 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	}
 	LogD( F("OK"), true);
 
-
-	uint8_t *ios_device_curve_key = hapClient->request.tlv.decode(HAP_TLV_TYPE_PUBLICKEY); 	// device_key
+	// TODO NOW: OK
 	uint8_t ios_device_curve_key_len = hapClient->request.tlv.size(HAP_TLV_TYPE_PUBLICKEY);
+	// uint8_t *ios_device_curve_key = hapClient->request.tlv.decode(HAP_TLV_TYPE_PUBLICKEY); 	// device_key
+
+	size_t decodedLen = 0;
+
+	uint8_t ios_device_curve_key[ios_device_curve_key_len] = {0,};
+	hapClient->request.tlv.decode(HAP_TLV_TYPE_PUBLICKEY, ios_device_curve_key, &decodedLen);	
+
+	if (decodedLen == 0) {
+		LogE( F("[PAIR-VERIFY M1] [ERROR] HAP_TLV_TYPE_ENCRYPTED_DATA failed "), true);		    	
+		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M2);
+		response.encode(TLV_TYPE_ERROR, 1, HAP_ERROR_AUTHENTICATON);
+
+		sendResponse(hapClient, &response);
+		return false;
+	}
+
+
+
 	
 #if HAP_DEBUG
 	LogD("acc_curve_public_key", true);
@@ -2145,10 +2188,7 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	subTLV->encode(HAP_TLV_TYPE_SIGNATURE, ED25519_SIGN_LENGTH, acc_signature);
 
 	size_t tlv8Len = subTLV->size();
-
-		// TODO NOW:
-	// uint8_t* tlv8Data = subTLV->decode();
-	uint8_t tlv8Data[subTLV->size()];
+	uint8_t tlv8Data[tlv8Len];
 	size_t written = 0;
 
 	subTLV->decode(tlv8Data, &written);
@@ -2243,11 +2283,17 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 	int err_code = 0;
 	TLV8 response;
 
-	uint8_t* encryptedData = hapClient->request.tlv.decode(HAP_TLV_TYPE_ENCRYPTED_DATA);
+
+	// TODO NOW: OK
+	// uint8_t* encryptedData = hapClient->request.tlv.decode(HAP_TLV_TYPE_ENCRYPTED_DATA);
 	int encryptedDataLen = hapClient->request.tlv.size(HAP_TLV_TYPE_ENCRYPTED_DATA);
+	size_t decodedLen = 0;
 
+	uint8_t encryptedData[encryptedDataLen] = {0,};
+	hapClient->request.tlv.decode(HAP_TLV_TYPE_ENCRYPTED_DATA, encryptedData, &decodedLen);
+	
 
-	if (!encryptedData) {
+	if (decodedLen == 0) {
 		LogE( F("[PAIR-VERIFY M3] [ERROR] HAP_TLV_TYPE_ENCRYPTED_DATA failed "), true);		    	
 		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M4);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_ERROR_AUTHENTICATON);
@@ -2272,7 +2318,10 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 
 
 	LogD("Decrypting data ...", true);
-	uint8_t* subtlv = (uint8_t*)malloc(sizeof(uint8_t) * encryptedDataLen);
+	// TODO NOW: OK
+	// uint8_t* subtlv = (uint8_t*)malloc(sizeof(uint8_t) * encryptedDataLen);
+	uint8_t subtlv[encryptedDataLen];
+
 	err_code = chacha20_poly1305_decrypt(CHACHA20_POLY1305_TYPE_PV03, subtlv_key, NULL, 0, encryptedData, encryptedDataLen, subtlv);
 	if (err_code != 0) {
 		LogE( F("[ERROR] Decrypting failed"), true);		    	
@@ -2292,11 +2341,14 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 #endif
 
 
+	// TODO NOW: OK
 	uint8_t ios_device_pairing_id_len 	= subTlv.size(HAP_TLV_TYPE_IDENTIFIER);
-	uint8_t *ios_device_pairing_id 		= subTlv.decode(HAP_TLV_TYPE_IDENTIFIER);		
+	// uint8_t *ios_device_pairing_id 		= subTlv.decode(HAP_TLV_TYPE_IDENTIFIER);
+	uint8_t ios_device_pairing_id[ios_device_pairing_id_len] = {0,};
+	subTlv.decode(HAP_TLV_TYPE_IDENTIFIER, ios_device_pairing_id, &decodedLen);	
 
+	if (decodedLen == 0) {
 
-	if (!ios_device_pairing_id) {
 		LogE( F("[ERROR] HAP_TLV_TYPE_IDENTIFIER failed "), true);		    	
 		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M4);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_ERROR_AUTHENTICATON);
@@ -2332,15 +2384,17 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 	LogD("Found LTPK: ", true);	
 	HAPHelper::arrayPrint(ios_device_ltpk, ED25519_PUBLIC_KEY_LENGTH);
 
-	uint8_t *ios_device_signature = subTlv.decode(HAP_TLV_TYPE_SIGNATURE);
+
+	// TODO NOW: OK
 	uint8_t ios_device_signature_len = subTlv.size(HAP_TLV_TYPE_SIGNATURE);
+	// uint8_t *ios_device_signature = subTlv.decode(HAP_TLV_TYPE_SIGNATURE);		
 
-	LogD("Found Signature: ", false);
-	HAPHelper::arrayPrint(ios_device_signature, ios_device_signature_len);
+	
+	uint8_t ios_device_signature[ios_device_signature_len] = {0,};
+	subTlv.decode(HAP_TLV_TYPE_SIGNATURE, ios_device_signature, &decodedLen);	
 
-
-	if (!ios_device_signature) {
-		LogE( F("[ERROR] HAP_TLV_TYPE_SIGNATURE failed "), true);		    	
+	if (decodedLen == 0) {
+		LogE( F("[PAIR-VERIFY M3] [ERROR] HAP_TLV_TYPE_ENCRYPTED_DATA failed "), true);		    	
 		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M4);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_ERROR_AUTHENTICATON);
 
@@ -2348,6 +2402,8 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 		return false;
 	}
 
+	LogD("Found Signature: ", false);
+	HAPHelper::arrayPrint(ios_device_signature, ios_device_signature_len);
     
 	int ios_device_info_len = 0;
     uint8_t* ios_device_info = concat3(hapClient->verifyContext->deviceLTPK, HKDF_KEY_LEN, 
