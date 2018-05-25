@@ -12,7 +12,7 @@
 #include <Arduino.h>
 #include <sodium.h>
 
-#define HAP_ENCRYPTION_AAD_SIZE 			2		// Don't change!
+// #define HAP_ENCRYPTION_AAD_SIZE 			2		// Don't change!
 #define HAP_ENCRYPTION_NONCE_SIZE 			12		// Don't change!
 #define HAP_ENCRYPTION_HMAC_SIZE			16		// Don't change!
 #define HAP_ENCRYPTION_KEY_SIZE				32		// Don't change!

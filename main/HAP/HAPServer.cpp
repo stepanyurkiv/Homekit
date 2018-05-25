@@ -1373,6 +1373,13 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 		response += String( HTTP_CRLF );
 	}
 
+
+#if 0
+	Serial.println("response: ");
+	HAPHelper::arrayPrint((uint8_t*)response.c_str(), response.length());
+#endif
+
+
 	int encryptedLen = 0;
     char* encrypted = encrypt((uint8_t*)response.c_str(), response.length(), &encryptedLen, hapClient->encryptionContext->encryptKey, hapClient->encryptionContext->encryptCount++);
 
@@ -1394,7 +1401,7 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 
 
 	int bytesSent = hapClient->client.write(encrypted, encryptedLen);
-	hapClient->client.flush();
+	// hapClient->client.flush();
 
 
 	if (bytesSent < encryptedLen) {
@@ -1498,7 +1505,7 @@ bool HAPServer::sendResponse(HAPClient* hapClient, TLV8* response, bool chunked)
 	}
 
 	int bytesSent = hapClient->client.write(buffer, offset);
-	hapClient->client.flush();
+	// hapClient->client.flush();
 
 	LogD("\nSent " + String(bytesSent) + "/" + String(offset) + " bytes", true);
 
@@ -1538,7 +1545,7 @@ bool HAPServer::sendResponse(HAPClient* hapClient, TLV8* response, bool chunked)
 	int bytesSent = hapClient->client.write(outResponse, response->size());
 	hapClient->client.write( HTTP_CRLF );
 	
-	hapClient->client.flush();
+	// hapClient->client.flush();
 	
 	free(outResponse);
 
@@ -2582,6 +2589,11 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 
 					struct HAPEvent event = HAPEvent(hapClient, aid, iid, chr["ev"].as<String>());					
 
+
+					LogI("HAPCLIENT IP: " + hapClient->client.remoteIP().toString(), true);
+					LogI("EVENT IP:     " + event.hapClient->client.remoteIP().toString(), true);
+
+
 					_eventManager.queueEvent( EventManager::kEventEvent, event);
 				} else {
 					isEvent = false;
@@ -2697,6 +2709,8 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 			Serial.println("String:");
 			Serial.println(response);
 #endif
+
+			LogV("Sending EVENT to client [" + eventParam.hapClient->client.remoteIP().toString() + "] ...", true);
 			if ( eventParam.hapClient->client.connected() ){
 				sendEncrypt(eventParam.hapClient, EVENT_200, response, false);	
 			} else {

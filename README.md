@@ -5,31 +5,19 @@ Homekit for ESP32 Arduino used as ESP-IDF component
 
 # Work-in-progress
 
-## Pair-Setup
-- [X] setupM1
-- [X] setupM3
-- [X] setupM5
+This project aims to implement Homekit for the esp32 using the arduino framework where possible.
 
-## Pair-Verify
-- [X] verifyM1
-- [X] verifyM3
+Currently it uses WolfSSL for encrpytion and srp but it is planned to replace it with using libsodium and mbedtls. 
 
-## En-/Decrypt
-- [X] decrypt
-- [ ] encrypt
+## Bugs / ToDo:
+- [ ] Persistent pairings
+- [ ] Events
 
-# ToDo
-- Accessories
-- Characteristics
-- Services
-- etc
-
-# Bugs
-- Disconnect while setupM5 with iOS Devices
 
 # Tested with hap-client-tool
 https://github.com/forty2/hap-client-tool
-
+Home app
+Elgato Eve app
 
 # Build instructions
 
@@ -38,6 +26,14 @@ This is a application to be used with `Espressif IoT Development Framework`_ (ES
 Please check ESP-IDF docs for getting started instructions.
 
 Espressif IoT Development Framework: https://github.com/espressif/esp-idf
+
+```shell
+$ git clone https://github.com/An00bIS47/Homekit
+$ cd Homekit
+$ git submodule update --init --recursive
+$ make -j4
+$ make flash monitor
+```
 
 
 # WiFi Settings

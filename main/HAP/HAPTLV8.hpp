@@ -35,7 +35,7 @@ enum HAP_TLV_Type {
 struct TLV8Entry {
 	uint8_t type;
 	uint8_t length;
-	byte* value;
+	uint8_t* value;
 
 	uint8_t id;
 
@@ -48,15 +48,20 @@ public:
 	TLV8();
 	~TLV8();
 
-	TLV8Entry* searchType(TLV8Entry* ptr, byte type);
+	TLV8Entry* searchType(TLV8Entry* ptr, uint8_t type);
 	TLV8Entry* searchId(TLV8Entry* ptr, uint8_t id);
 
-	bool encode(byte type, size_t length, const byte data);
-	bool encode(byte type, size_t length, const byte* rawData);
-	bool encode(byte* rawData, size_t dataLen);
+	bool encode(uint8_t type, size_t length, const byte data);
+	bool encode(uint8_t type, size_t length, const byte* rawData);
+	bool encode(uint8_t* rawData, size_t dataLen);
 
-	byte* decode();
-	byte* decode(byte type);
+	
+	uint8_t* decode() __attribute__ ((deprecated));
+	uint8_t* decode(uint8_t type) __attribute__ ((deprecated));
+
+
+	void decode(uint8_t* out, size_t *outSize);
+	void decode(const uint8_t type, uint8_t* out, size_t *outSize);
 
 	void addNode( TLV8Entry* ptr);
 	void insertNode( TLV8Entry* ptr);
@@ -70,17 +75,17 @@ public:
 	static void printList( TLV8Entry* ptr);
 	static void printNode( TLV8Entry* ptr);
 
-	TLV8Entry* initNode(const byte type, const byte length, const byte* value);
-	TLV8Entry* initNode(const byte* rawData);
+	TLV8Entry* initNode(const uint8_t type, const uint8_t length, const uint8_t* value);
+	TLV8Entry* initNode(const uint8_t* rawData);
 
 	TLV8Entry *_head;
 
 
 	// Size of data values + TYPE + LENGTH
 	size_t size();
-	size_t size( byte type );
+	size_t size( uint8_t type );
 	static size_t size( TLV8Entry *ptr );
-	static size_t size( TLV8Entry *ptr, byte type );
+	static size_t size( TLV8Entry *ptr, uint8_t type );
 
 //	// Length of data + type + length values
 //	size_t length();
@@ -90,7 +95,7 @@ public:
 	uint8_t count();
 	static uint8_t count(TLV8Entry* ptr);
 
-	static bool isValidTLVType(byte type);
+	static bool isValidTLVType(uint8_t type);
 private:
 
 	TLV8Entry *_tail;

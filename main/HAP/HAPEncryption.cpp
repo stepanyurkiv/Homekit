@@ -9,6 +9,7 @@
 #include "HAPEncryption.hpp"
 #include "HAPLogger.hpp"
 #include "HAPHelper.hpp"
+#include "HAPGlobals.hpp"
 
 int HAPEncryption::pad(size_t *padded_buflen_p, uint8_t *msg, 
         const uint8_t *buf, size_t unpadded_buflen, size_t blocksize, 
@@ -153,9 +154,9 @@ int HAPEncryption::computePoly1305(uint8_t* hmac, uint8_t* cipherText,
     size_t block_size = 16;
 
     int paddedCipherLength  = paddedLength(cipherTextLength, block_size);
-    int paddedAADLength     = paddedLength(HAP_ENCRYPTION_AAD_SIZE, block_size);
+    int paddedAADLength     = paddedLength(HAP_AAD_LENGTH, block_size);
 
-    int paddedAADLengthNum       = paddedLength(HAP_ENCRYPTION_AAD_SIZE, 8);
+    int paddedAADLengthNum       = paddedLength(HAP_AAD_LENGTH, 8);
     int paddedCipherLengthNum    = paddedLength( HAPHelper::numDigits(paddedCipherLength), 8);
 
     int paddedLength        = paddedAADLength 
@@ -170,7 +171,7 @@ int HAPEncryption::computePoly1305(uint8_t* hmac, uint8_t* cipherText,
     Serial.printf("paddedLength: %d\n", paddedLength);
 #endif
     
-    int aad_len = HAP_ENCRYPTION_AAD_SIZE;
+    int aad_len = HAP_AAD_LENGTH;
 
     memcpy(msg, AAD, aad_len);
     memcpy(msg + paddedAADLength, cipherText, cipherTextLength);
@@ -245,7 +246,7 @@ int HAPEncryption::verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[],
 
     begin();
 
-    if ( length > 1024 + HAP_ENCRYPTION_AAD_SIZE + HAP_ENCRYPTION_HMAC_SIZE ){
+    if ( length > 1024 + HAP_AAD_LENGTH + HAP_ENCRYPTION_HMAC_SIZE ){
         LogE("NOWNOW!!", true);
     }
     
@@ -283,7 +284,7 @@ int HAPEncryption::verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[],
     HAPHelper::arrayPrint(cipherText, length);
 
     Serial.println("AAD:");
-    HAPHelper::arrayPrint(aad, HAP_ENCRYPTION_AAD_SIZE);
+    HAPHelper::arrayPrint(aad, HAP_AAD_LENGTH);
 
     Serial.println("mac:");
     HAPHelper::arrayPrint(mac, HAP_ENCRYPTION_HMAC_SIZE);

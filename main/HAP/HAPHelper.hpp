@@ -12,17 +12,6 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-
-// #if defined(__GNUC__) || defined(__clang__)
-// 	#define DEPRECATED __attribute__((deprecated))
-// #elif defined(_MSC_VER)
-// 	#define DEPRECATED __declspec(deprecated)
-// #else
-// 	#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
-// 	#define DEPRECATED
-// #endif
-
-
 class HAPHelper {
 public:
 	HAPHelper();
@@ -33,12 +22,17 @@ public:
 	// 	uint8_t bit8[4];
 	// } HAPBit32to8Converter;
 
-	// DEPRECATED
-	 static String getValue(String data, char separator, int index) __attribute__ ((deprecated));	
-	 static byte* hexToBin(const char* string) __attribute__ ((deprecated));
-	 static void binToHex(const unsigned char * in, size_t insz, char * out, size_t outsz) __attribute__ ((deprecated));
-	 static char* toHex(const unsigned char * in, size_t insz) __attribute__ ((deprecated));
-	 static void prependZeros(char *dest, const char *src, uint8_t width) __attribute__ ((deprecated)); // -> moved to encryption
+	
+	// static String getValue(String data, char separator, int index) __attribute__ ((deprecated));	
+	
+
+	// DEPRECATED functions causing memory leaks
+	static byte* hexToBin(const char* string) __attribute__ ((deprecated));
+	static void binToHex(const unsigned char * in, size_t insz, char * out, size_t outsz) __attribute__ ((deprecated));
+	static char* toHex(const unsigned char * in, size_t insz) __attribute__ ((deprecated));
+	
+
+	static void prependZeros(char *dest, const char *src, uint8_t width); // __attribute__ ((deprecated)); 
 	
 
 
