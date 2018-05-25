@@ -1675,8 +1675,15 @@ bool HAPServer::handlePairSetupM3(HAPClient* hapClient) {
 	TLV8 response;
 
 	LogD( F("\nDecoding TLV ..."), false);
-	uint8_t *device_public_key = hapClient->request.tlv.decode(HAP_TLV_TYPE_PUBLICKEY);
-	if (!device_public_key) {
+
+	// uint8_t *device_public_key = hapClient->request.tlv.decode(HAP_TLV_TYPE_PUBLICKEY);
+
+	size_t decodedLen = 0;	
+	uint8_t device_public_key[hapClient->request.tlv.size(HAP_TLV_TYPE_PUBLICKEY)];
+
+	hapClient->request.tlv.decode(HAP_TLV_TYPE_PUBLICKEY, device_public_key, &decodedLen);
+
+	if (decodedLen == 0) {
 		LogE( F("[ERROR] Invalid payload: no client public key"), true);		
 		response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M4);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_AUTHENTICATION);
@@ -1685,8 +1692,7 @@ bool HAPServer::handlePairSetupM3(HAPClient* hapClient) {
 		return false;
 	}
 	LogD("OK", true);
-
-
+	
 
 	LogD( F("Generating proof ..."), false);
 	err_code = srp_client_key_set(_srp, device_public_key);
@@ -1702,9 +1708,12 @@ bool HAPServer::handlePairSetupM3(HAPClient* hapClient) {
         return false;
     }
 
-    
-    uint8_t *proof = hapClient->request.tlv.decode(HAP_TLV_TYPE_PROOF);
-    if (!proof) {
+    decodedLen = 0;
+    // uint8_t *proof = hapClient->request.tlv.decode(HAP_TLV_TYPE_PROOF);
+    uint8_t proof[hapClient->request.tlv.size(HAP_TLV_TYPE_PROOF)];
+	hapClient->request.tlv.decode(HAP_TLV_TYPE_PROOF, proof, &decodedLen);
+
+    if (decodedLen == 0) {
     	LogE( F("[ERROR] Invalid payload: no device proof"), true);		    	
     	response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M4);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_AUTHENTICATION);
@@ -2857,7 +2866,6 @@ void HAPServer::__setBrand(const char* brand) {
 	strncpy(_brand, brand + 5, strlen(brand) - 10);
 	_brand[strlen(brand) - 10] = '\0';
 }
-
 
 
 

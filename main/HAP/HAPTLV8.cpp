@@ -24,8 +24,15 @@ TLV8::TLV8()
 
 void TLV8::decode(const uint8_t type, uint8_t* out, size_t *outSize){
 	if (_head == NULL || !out) {
-		*outSize = 0;
+		if (outSize != nullptr) {
+			*outSize = 0;	
+		}
 		return;
+	}
+
+
+	if (outSize != nullptr) {
+		*outSize = 0;	
 	}
 
 	TLV8Entry *tmp = _head;
@@ -47,7 +54,10 @@ void TLV8::decode(const uint8_t type, uint8_t* out, size_t *outSize){
 			//			data[offset++] = _head->length;
 			memcpy(out + offset, _head->value, _head->length);
 			offset += _head->length;
-			*outSize = offset;
+			
+			if (outSize != nullptr) {
+				*outSize = offset;	
+			}
 		}
 
 
@@ -67,54 +77,59 @@ void TLV8::decode(const uint8_t type, uint8_t* out, size_t *outSize){
 
 }
 
-uint8_t* TLV8::decode(uint8_t type){
+// uint8_t* TLV8::decode(uint8_t type){
 
-	if (_head == NULL) return NULL;
+// 	if (_head == NULL) return NULL;
 
-	TLV8Entry *tmp = _head;
+// 	TLV8Entry *tmp = _head;
 
-	uint8_t* data;
-	size_t offset = 0;
-	size_t tlvSize = size(_head, type) - 2; // returns size with type and length values
+// 	uint8_t* data;
+// 	size_t offset = 0;
+// 	size_t tlvSize = size(_head, type) - 2; // returns size with type and length values
 
-	data = (uint8_t*) malloc(sizeof(uint8_t) * tlvSize);
-	if (!data) return NULL;
+// 	data = (uint8_t*) malloc(sizeof(uint8_t) * tlvSize);
+// 	if (!data) return NULL;
 
-	while(_head) {
+// 	while(_head) {
 
-		if (_head->type == type) {
-			//			data[offset++] = _head->type;
-			//			data[offset++] = _head->length;
-			memcpy(data + offset, _head->value, _head->length);
-			offset += _head->length;
-		}
+// 		if (_head->type == type) {
+// 			//			data[offset++] = _head->type;
+// 			//			data[offset++] = _head->length;
+// 			memcpy(data + offset, _head->value, _head->length);
+// 			offset += _head->length;
+// 		}
 
 
-		if(_head->next == NULL) {
-			_head = tmp;
-			return data;
-		}
+// 		if(_head->next == NULL) {
+// 			_head = tmp;
+// 			return data;
+// 		}
 
-		_head = _head->next;
-	}
-	_head = tmp;
+// 		_head = _head->next;
+// 	}
+// 	_head = tmp;
 
-#if TLV_DEBUG
-	LogV( F("Bytes decoded: "), false);
-	LogV(offset, true);
-#endif
+// #if TLV_DEBUG
+// 	LogV( F("Bytes decoded: "), false);
+// 	LogV(offset, true);
+// #endif
 
-	return data;
-}
+// 	return data;
+// }
 
 
 void TLV8::decode(uint8_t* out, size_t *outSize){		
 
 	if (_head == NULL || !out) {
-		*outSize = 0;
+		if (outSize != nullptr) {
+			*outSize = 0;	
+		}
 		return;
 	}
 
+	if (outSize != nullptr) {
+		*outSize = 0;	
+	}
 
 	TLV8Entry *tmp = _head;
 	// outSize = size(_head);
@@ -127,7 +142,10 @@ void TLV8::decode(uint8_t* out, size_t *outSize){
 		memcpy(out + offset, _head->value, _head->length);
 		offset += _head->length;
 
-		*outSize = offset;
+		if (outSize != nullptr) {
+			*outSize = offset;	
+		}
+		
 
 		if(_head->next == NULL) {
 			_head = tmp;

@@ -57,11 +57,11 @@ public:
 
 	
 	// uint8_t* decode() __attribute__ ((deprecated));
-	uint8_t* decode(uint8_t type) __attribute__ ((deprecated));
+	// uint8_t* decode(uint8_t type) __attribute__ ((deprecated));
 
 
-	void decode(uint8_t* out, size_t *outSize);
-	void decode(const uint8_t type, uint8_t* out, size_t *outSize);
+	void decode(uint8_t* out, size_t *outSize = nullptr);
+	void decode(const uint8_t type, uint8_t* out, size_t *outSize = nullptr);
 
 	void addNode( TLV8Entry* ptr);
 	void insertNode( TLV8Entry* ptr);
