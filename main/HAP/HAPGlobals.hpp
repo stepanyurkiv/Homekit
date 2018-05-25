@@ -11,7 +11,7 @@
 /**
  * -> Preferences
  ********************************************************************/
-#define HAP_DEBUG 					0
+#define HAP_DEBUG 					1
 #define HAP_PIN_CODE 				"031-45-712"
 #define HAP_HOSTNAME				"ESP32-Homekit"
 #define HAP_MANUFACTURER			"C4"

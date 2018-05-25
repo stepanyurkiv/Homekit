@@ -2467,13 +2467,23 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 
 		size_t outSize = 0;
 		int32_t errorCode = getValueForCharacteristics(aid, iid, NULL, &outSize);
-		if ( errorCode != 0){
-			// TODO:
+
+#if HAP_DEBUG
+			LogD( "errorCode: " + String(errorCode), true );
+			LogD( "outSize:   " + String(outSize), true );
+#endif
+
+		if ( errorCode != 0){		
+
 			characteristics_0["status"] = errorCode;
 			errorOccured = true;
 		} else {
-			char value[outSize];
+			char value[++outSize];
 			getValueForCharacteristics(aid, iid, value, &outSize);
+
+#if HAP_DEBUG
+			LogD( "value: " + String(value), true );
+#endif
 
 			if ( strcmp(value, "true") == 0 ) {
 				characteristics_0["value"] = 1;
@@ -2490,12 +2500,10 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 	String response;			
 	root.printTo(response);
 
-#if 0
-	Serial.println("-> Serial:");
+#if HAP_DEBUG
+
 	root.prettyPrintTo(Serial);
 
-	Serial.println("String:");
-	Serial.println(response);
 #endif
 
 
@@ -2524,7 +2532,7 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 int32_t HAPServer::getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize){
 	characteristics *c = getCharacteristics(aid, iid);
 	if (c != nullptr) {		
-		*outSize = strlen(c->value().c_str());
+		*outSize = c->value().length();
 		if (out != NULL){
 			 c->value().toCharArray(out, *outSize);	
 		}		
@@ -2767,12 +2775,25 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
         	int32_t errorCode = 0;
 
         	errorCode = getValueForCharacteristics(eventParam.aid, eventParam.iid, NULL, &outSize);
+
+#if HAP_DEBUG
+			LogD( "errorCode: " + String(errorCode), true );
+			LogD( "outSize: " + String(outSize), true );
+#endif
+
         	if ( errorCode != 0){
         		// TODO:
         		characteristics_0["status"] = errorCode;
         	} else {
-				char value[outSize];
+				char value[++outSize];
 				getValueForCharacteristics(eventParam.aid, eventParam.iid, value, &outSize);
+
+
+#if HAP_DEBUG
+				LogD( "value: " + String(value), true );
+#endif
+
+
 				if ( strcmp(value, "true") == 0 ) {
 					characteristics_0["value"] = 1;
 				} else if ( strcmp(value, "false") == 0 ) {
@@ -2781,22 +2802,13 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 					characteristics_0["value"] = value;	
 				}
         	}
-
- 
-
-			
-
 			
 
 			String response;			
 			root.printTo(response);
 
-#if 0
-			Serial.println("-> Serial:");
+#if HAP_DEBUG
 			root.prettyPrintTo(Serial);
-
-			Serial.println("String:");
-			Serial.println(response);
 #endif
 
 			LogV("Sending EVENT to client [" + eventParam.hapClient->client.remoteIP().toString() + "] ...", true);

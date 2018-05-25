@@ -1,31 +1,16 @@
 # Homekit
-====================
 
-Homekit for ESP32 Arduino used as ESP-IDF component
+### This is work-in-progress!
 
-# Work-in-progress
+This project aims to implement Homekit for the ESP32 using the Arduino framework where possible.
 
-This project aims to implement Homekit for the esp32 using the arduino framework where possible.
+## Build instructions
 
-Currently it uses WolfSSL for encrpytion and srp but it is planned to replace it with using libsodium and mbedtls. 
+This is a application to be used with `Espressif IoT Development Framework (ESP-IDF)`. 
 
-## Bugs / ToDo:
-- [ ] Persistent pairings
-- [ ] Events
+Please check ESP-IDF docs for getting started instructions and install instructions.
 
-
-# Tested with hap-client-tool
-https://github.com/forty2/hap-client-tool
-Home app
-Elgato Eve app
-
-# Build instructions
-
-This is a application to be used with `Espressif IoT Development Framework`_ (ESP-IDF). 
-
-Please check ESP-IDF docs for getting started instructions.
-
-Espressif IoT Development Framework: https://github.com/espressif/esp-idf
+[Espressif IoT Development Framework](https://github.com/espressif/esp-idf)
 
 ```shell
 $ git clone https://github.com/An00bIS47/Homekit
@@ -36,9 +21,9 @@ $ make flash monitor
 ```
 
 
-# WiFi Settings
+## WiFi Settings
 
-Add a file called ``` WiFiCredentials.hpp ``` in the ```main``` folder and edit the settigs:
+Add a file called ``` WiFiCredentials.hpp ``` in the ```main``` folder and edit the settings:
 ```c++
 //
 // WiFiCredentials.hpp
@@ -56,3 +41,8 @@ Add a file called ``` WiFiCredentials.hpp ``` in the ```main``` folder and edit 
 
 #endif /* WIFICREDENTIALS_HPP_ */
 ```
+
+## Tested with the following apps
+- [hap-client-tool](https://github.com/forty2/hap-client-tool)
+- Home app
+- Elgato Eve app

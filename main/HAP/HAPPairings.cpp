@@ -27,7 +27,7 @@ bool HAPPairings::begin(){
 
 void HAPPairings::save(){
 	for (int i=0; i < _pairings.size(); i++){
-		EEPROM.writeBytes( i * sizeof(HAPPairing), &_pairings[i], sizeof(HAPPairing));
+		EEPROM.writeBytes( HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) ), &_pairings[i], sizeof(HAPPairing));
 	}
 	EEPROM.commit();
 }
@@ -46,7 +46,7 @@ void HAPPairings::load(){
 		// EEPROM.readBytes( i * sizeof(HAPPairing), id, HAP_PAIRINGS_ID_SIZE);
 		// EEPROM.readBytes( (i * sizeof(HAPPairing)) + HAP_PAIRINGS_ID_SIZE, key, HAP_PAIRINGS_LTPK_SIZE);
 
-		EEPROM.readBytes( i * sizeof(HAPPairing), &tmp, sizeof(HAPPairing));
+		EEPROM.readBytes( HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) ), &tmp, sizeof(HAPPairing));
 
 		// if (id[0] != '0' && id[1] != '0'){
 		// 	Serial.println("BREAK!!!!!!!!!!!!!!!!!!!!");
@@ -72,8 +72,8 @@ void HAPPairings::resetEEPROM(){
 void HAPPairings::add(uint8_t* id, uint8_t* key){    
 
 	struct HAPPairing item;
-	memcpy(item.id, id, HAP_PAIRINGS_ID_SIZE);
-	memcpy(item.key, key, HAP_PAIRINGS_LTPK_SIZE);
+	memcpy(item.id, id, HAP_PAIRINGS_ID_LENGTH);
+	memcpy(item.key, key, HAP_PAIRINGS_LTPK_LENGTH);
 	
 	// LogD("### Save pairing:", true);
 
@@ -106,13 +106,13 @@ int HAPPairings::getKey(const uint8_t* id, uint8_t* outkey) {
 		// LogD("### - ID: ", false);
 		// HAPHelper::arrayPrint(item.id, HAP_PAIRINGS_ID_SIZE);
 
-		if ( memcmp(item.id, id, HAP_PAIRINGS_ID_SIZE) == 0) {
+		if ( memcmp(item.id, id, HAP_PAIRINGS_ID_LENGTH) == 0) {
 		
 			// LogD("### - KEY found: ", false);
 			// HAPHelper::arrayPrint(item.key, HAP_PAIRINGS_LTPK_SIZE);
 			
 			if (outkey != NULL)
-				memcpy(outkey, item.key, HAP_PAIRINGS_LTPK_SIZE);
+				memcpy(outkey, item.key, HAP_PAIRINGS_LTPK_LENGTH);
 			return 0;
 		}
 
@@ -137,19 +137,19 @@ void HAPPairings::print(){
 
 
 void HAPPairings::loadLTPK(uint8_t *ltpk){
-	EEPROM.readBytes( sizeof(HAPPairing) * HAP_PAIRINGS_MAX , &ltpk, ED25519_PUBLIC_KEY_LENGTH);
+	EEPROM.readBytes( 0 , &ltpk, HAP_PAIRINGS_LTPK_LENGTH);
 }
 
 void HAPPairings::loadLTSK(uint8_t *ltsk){
-	EEPROM.readBytes( (sizeof(HAPPairing) * HAP_PAIRINGS_MAX) + ED25519_PUBLIC_KEY_LENGTH, &ltsk, ED25519_PRIVATE_KEY_LENGTH);
+	EEPROM.readBytes( HAP_PAIRINGS_LTPK_LENGTH, &ltsk, HAP_PAIRINGS_LTSK_LENGTH);
 }
 
 
 void HAPPairings::saveLTPK(uint8_t *ltpk){
-	EEPROM.writeBytes( sizeof(HAPPairing) * HAP_PAIRINGS_MAX , &ltpk, ED25519_PUBLIC_KEY_LENGTH);
+	EEPROM.writeBytes( 0 , &ltpk, HAP_PAIRINGS_LTPK_LENGTH);
 }
 
 void HAPPairings::saveLTSK(uint8_t *ltsk){
-	EEPROM.writeBytes( (sizeof(HAPPairing) * HAP_PAIRINGS_MAX) + ED25519_PUBLIC_KEY_LENGTH, &ltsk, ED25519_PRIVATE_KEY_LENGTH);
+	EEPROM.writeBytes( HAP_PAIRINGS_LTPK_LENGTH, &ltsk, HAP_PAIRINGS_LTSK_LENGTH);
 }
 
