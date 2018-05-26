@@ -26,10 +26,30 @@ bool HAPPairings::begin(){
 
 
 void HAPPairings::save(){
+	
 	for (int i=0; i < _pairings.size(); i++){
-		EEPROM.writeBytes( HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) ), &_pairings[i], sizeof(HAPPairing));
+		
+
+#if 0	
+		Serial.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: " + String(HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) )));	
+		Serial.println("id: ");
+		HAPHelper::arrayPrint(_pairings[i].id, HAP_PAIRINGS_ID_LENGTH);
+
+		Serial.println("key: ");
+		HAPHelper::arrayPrint(_pairings[i].key, HAP_PAIRINGS_LTPK_LENGTH);
+
+		Serial.println("===============================================");
+#endif
+
+		size_t written = EEPROM.writeBytes( HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) ), &_pairings[i], sizeof(HAPPairing));
+		if ( written != sizeof(HAPPairing) ) {
+			LogE("[ERROR] Failed to save pairing to EEPROM!", true);
+		}
 	}
-	EEPROM.commit();
+
+	if (!EEPROM.commit()){
+		LogE("Failed to commit EEPROM!", true);
+	}
 }
 
 void HAPPairings::load(){
@@ -37,21 +57,23 @@ void HAPPairings::load(){
 	for (int i=0; i < HAP_PAIRINGS_MAX; i++){
 		HAPPairing tmp;
 
-		// uint8_t id[HAP_PAIRINGS_ID_SIZE];
-		// uint8_t key[HAP_PAIRINGS_LTPK_SIZE];
+		size_t read = EEPROM.readBytes( HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) ), &tmp, sizeof(HAPPairing));
 
-		// Serial.printf("i: %d . i * sizeof(HAPPairing): %d\n", i, i * sizeof(HAPPairing));
-		// Serial.printf("i: %d . (i * sizeof(HAPPairing)) + HAP_PAIRINGS_ID_SIZE: %d\n", i, (i * sizeof(HAPPairing)) + HAP_PAIRINGS_ID_SIZE);
+		if ( read != sizeof(HAPPairing) ) {
+			LogE("[ERROR] Failed to load pairings from EEPROM!", true);
+		}
 
-		// EEPROM.readBytes( i * sizeof(HAPPairing), id, HAP_PAIRINGS_ID_SIZE);
-		// EEPROM.readBytes( (i * sizeof(HAPPairing)) + HAP_PAIRINGS_ID_SIZE, key, HAP_PAIRINGS_LTPK_SIZE);
+#if 0	
+		Serial.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: " + String(HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) )));	
+		Serial.println("id: ");
+		HAPHelper::arrayPrint(tmp.id, HAP_PAIRINGS_ID_LENGTH);
 
-		EEPROM.readBytes( HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) ), &tmp, sizeof(HAPPairing));
+		Serial.println("key: ");
+		HAPHelper::arrayPrint(tmp.key, HAP_PAIRINGS_LTPK_LENGTH);
 
-		// if (id[0] != '0' && id[1] != '0'){
-		// 	Serial.println("BREAK!!!!!!!!!!!!!!!!!!!!");
-		// 	break;
-		// }
+		Serial.println("===============================================");
+#endif
+
 		if (tmp.id[0] == 0xFF && tmp.id[1] == 0xFF && tmp.key[0] == 0xFF &&tmp.key[1] == 0xFF ){
 			return;
 		} 
@@ -64,7 +86,9 @@ void HAPPairings::resetEEPROM(){
 	for (int i=0 ; i < HAP_EEPROM_SIZE; i++){
 		EEPROM.write(i, 0xFF);
 	}
-	EEPROM.commit();
+	if (!EEPROM.commit()){
+		LogE("Failed to commit EEPROM!", true);
+	}
 }
 
 
@@ -74,14 +98,16 @@ void HAPPairings::add(uint8_t* id, uint8_t* key){
 	struct HAPPairing item;
 	memcpy(item.id, id, HAP_PAIRINGS_ID_LENGTH);
 	memcpy(item.key, key, HAP_PAIRINGS_LTPK_LENGTH);
-	
-	// LogD("### Save pairing:", true);
 
-	// LogD("### - ID: ", false);
-	// HAPHelper::arrayPrint(item.id, HAP_PAIRINGS_ID_SIZE);
+#if 0	
+	LogD("### Save pairing:", true);
 
-	// LogD("### - KEY: ", false);
-	// HAPHelper::arrayPrint(item.key, HAP_PAIRINGS_LTPK_SIZE);
+	LogD("### - ID: ", false);
+	HAPHelper::arrayPrint(item.id, HAP_PAIRINGS_ID_SIZE);
+
+	LogD("### - KEY: ", false);
+	HAPHelper::arrayPrint(item.key, HAP_PAIRINGS_LTPK_SIZE);
+#endif
 
 	_pairings.push_back(item);
 }
@@ -128,28 +154,58 @@ uint8_t HAPPairings::size(){
 void HAPPairings::print(){
 	for (int i=0; i < _pairings.size(); i++){
 		Serial.println("id: ");
-		HAPHelper::arrayPrint(_pairings[i].id, 36);
+		HAPHelper::arrayPrint(_pairings[i].id, HAP_PAIRINGS_ID_LENGTH);
 
 		Serial.println("key: ");
-		HAPHelper::arrayPrint(_pairings[i].key, 32);
+		HAPHelper::arrayPrint(_pairings[i].key, HAP_PAIRINGS_LTPK_LENGTH);
 	}
 }
 
+void HAPPairings::loadKeys(uint8_t *ltpk, uint8_t *ltsk){
+	
+	HAPKeys k;
+	size_t read = EEPROM.readBytes( 0, &k, sizeof(HAPKeys));
 
-void HAPPairings::loadLTPK(uint8_t *ltpk){
-	EEPROM.readBytes( 0 , &ltpk, HAP_PAIRINGS_LTPK_LENGTH);
+	if ( read != sizeof(HAPKeys) ) {
+		LogE("[ERROR] Failed to load keys from EEPROM!", true);
+	}
+
+	memcpy(ltpk, k.ltpk, HAP_PAIRINGS_LTPK_LENGTH);
+	memcpy(ltsk, k.ltsk, HAP_PAIRINGS_LTSK_LENGTH);
+
+#if 0
+	LogD("Loaded LTPK from EEPROM: ", true);
+	HAPHelper::arrayPrint(ltpk, HAP_PAIRINGS_LTPK_LENGTH);
+
+	LogD("Loaded LTSK from EEPROM: ", true);
+	HAPHelper::arrayPrint(ltsk, HAP_PAIRINGS_LTSK_LENGTH);
+#endif
+
 }
 
-void HAPPairings::loadLTSK(uint8_t *ltsk){
-	EEPROM.readBytes( HAP_PAIRINGS_LTPK_LENGTH, &ltsk, HAP_PAIRINGS_LTSK_LENGTH);
-}
+void HAPPairings::saveKeys(uint8_t *ltpk, uint8_t *ltsk){
 
+	HAPKeys k;
+	memcpy(k.ltpk, ltpk, HAP_PAIRINGS_LTPK_LENGTH);
+	memcpy(k.ltsk, ltsk, HAP_PAIRINGS_LTSK_LENGTH);
 
-void HAPPairings::saveLTPK(uint8_t *ltpk){
-	EEPROM.writeBytes( 0 , &ltpk, HAP_PAIRINGS_LTPK_LENGTH);
-}
+#if 0
+	LogD("Saving LTPK to EEPROM: ", true);
+	HAPHelper::arrayPrint(ltpk, HAP_PAIRINGS_LTPK_LENGTH);
 
-void HAPPairings::saveLTSK(uint8_t *ltsk){
-	EEPROM.writeBytes( HAP_PAIRINGS_LTPK_LENGTH, &ltsk, HAP_PAIRINGS_LTSK_LENGTH);
+	LogD("Saving LTSK to EEPROM: ", true);
+	HAPHelper::arrayPrint(ltsk, HAP_PAIRINGS_LTSK_LENGTH);
+#endif
+
+	size_t written = EEPROM.writeBytes( 0, &k, sizeof(HAPKeys));
+	// Serial.println(written);
+
+	if ( written != sizeof(HAPKeys) ) {
+		LogE("[ERROR] Failed to save LTPK to EEPROM!", true);
+	}
+
+	if (!EEPROM.commit()){
+		LogE("Failed to commit EEPROM!", true);
+	}
 }
 

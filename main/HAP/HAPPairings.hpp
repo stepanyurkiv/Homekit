@@ -57,7 +57,7 @@
 #define HAP_EEPROM_SIZE				4096
 // #define HAP_EEPROM_PARTITION		"eeprom"
 
-#define HAP_EEPROM_OFFSET_PAIRINGS 	HAP_PAIRINGS_ID_LENGTH + HAP_PAIRINGS_LTPK_LENGTH
+#define HAP_EEPROM_OFFSET_PAIRINGS 	HAP_PAIRINGS_LTPK_LENGTH + HAP_PAIRINGS_LTSK_LENGTH
 
 
 // HAPPairing 
@@ -68,6 +68,11 @@
 struct HAPPairing {
 	uint8_t id[HAP_PAIRINGS_ID_LENGTH];
 	uint8_t key[HAP_PAIRINGS_LTPK_LENGTH];
+};
+
+struct HAPKeys {
+	uint8_t ltpk[HAP_PAIRINGS_LTPK_LENGTH];
+	uint8_t ltsk[HAP_PAIRINGS_LTSK_LENGTH];
 };
 
 class HAPPairings {
@@ -82,11 +87,16 @@ public:
 	void save();
 	void resetEEPROM();
 
-	void loadLTPK(uint8_t *ltpk);
-	void loadLTSK(uint8_t *ltsk);
 
-	void saveLTPK(uint8_t *ltpk);
-	void saveLTSK(uint8_t *ltsk);
+	void saveKeys(uint8_t *ltpk, uint8_t *ltsk);
+	void loadKeys(uint8_t *ltpk, uint8_t *ltsk);
+
+
+	// void loadLTPK(uint8_t *ltpk) __attribute__ ((deprecated));
+	// void loadLTSK(uint8_t *ltsk) __attribute__ ((deprecated));
+
+	// void saveLTPK(uint8_t *ltpk) __attribute__ ((deprecated));
+	// void saveLTSK(uint8_t *ltsk) __attribute__ ((deprecated));
 
 	void print();
 

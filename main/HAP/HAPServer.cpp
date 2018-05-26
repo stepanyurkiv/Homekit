@@ -41,7 +41,7 @@
 
 #define IS_BIG_ENDIAN (*(uint16_t *)"\0\xff" < 0x100)
 
-#define HAP_RESET_EEPROM 1
+#define HAP_RESET_EEPROM 0
 
 
 //
@@ -161,9 +161,18 @@ bool HAPServer::begin() {
 		_longTermContext->publicKeyLength = ED25519_PUBLIC_KEY_LENGTH;
 		_longTermContext->privateKey = (uint8_t*) malloc(sizeof(uint8_t) * ED25519_PRIVATE_KEY_LENGTH);
 		_longTermContext->privateKeyLength = ED25519_PRIVATE_KEY_LENGTH;
+		
+	 	_pairings.loadKeys(_longTermContext->publicKey, _longTermContext->privateKey);
 
-		_pairings.saveLTPK(_longTermContext->publicKey);
- 		_pairings.saveLTSK(_longTermContext->privateKey);
+
+#if HAP_DEBUG
+ 		Serial.println("_longTermContext->publicKey: ");
+ 		HAPHelper::arrayPrint(_longTermContext->publicKey, ED25519_PUBLIC_KEY_LENGTH);
+
+ 		Serial.println("_longTermContext->privateKey: ");
+ 		HAPHelper::arrayPrint(_longTermContext->privateKey, ED25519_PRIVATE_KEY_LENGTH);
+#endif 		
+
 
 		LogV("OK", true);
 	}
@@ -190,8 +199,6 @@ bool HAPServer::begin() {
 	} else {
 		LogV("OK", true);
 	}
-
-
 
 
 	LogV( F("Setup accessory ..."), false);
@@ -266,7 +273,7 @@ bool HAPServer::begin() {
     	//Serial.println(*it);
     	auto plugin = factory.getPlugin(*it);
 
-    	if ( plugin->isEnabled()) {
+    	if ( plugin->isEnabled()) {    		
 
 			LogI("   - ENABLED  " + plugin->name(), false);
     		LogD(" (v" + String(plugin->version()) + ")", false);	
@@ -1333,6 +1340,7 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 
 		if ( httpStatus != EVENT_200 ) {
 			response += String( HTTP_KEEP_ALIVE );	
+			response += "Host: " + String(HAP_HOSTNAME) + ".local\r\n";	
 		}
 		
 
@@ -1419,33 +1427,28 @@ bool HAPServer::sendResponse(HAPClient* hapClient, TLV8* response, bool chunked)
 
 	// HTTP 200
 	memcpy(buffer, String(HTTP_200).c_str(), String(HTTP_200).length());
-	offset = String(HTTP_200).length();
-	// CR_LF
-	//memcpy(buffer + offset, String(HTTP_CRLF).c_str(), String(HTTP_CRLF).length());
-	//offset += String(HTTP_CRLF).length();
+	offset = String(HTTP_200).length();	
+
 
 	// HTTP_CONTENT_TYPE_TLV8
 	memcpy(buffer + offset, String(HTTP_CONTENT_TYPE_TLV8).c_str(), String(HTTP_CONTENT_TYPE_TLV8).length());
 	offset += String(HTTP_CONTENT_TYPE_TLV8).length();
-	// CR_LF
-	//memcpy(buffer + offset, String(HTTP_CRLF).c_str(), String(HTTP_CRLF).length());
-	//offset += String(HTTP_CRLF).length();
+
 
 	// HTTP_KEEP_ALIVE
 	memcpy(buffer + offset, String(HTTP_KEEP_ALIVE).c_str(), String(HTTP_KEEP_ALIVE).length());
 	offset += String(HTTP_KEEP_ALIVE).length();
-	// CR_LF
-	//memcpy(buffer + offset, String(HTTP_CRLF).c_str(), String(HTTP_CRLF).length());
-	//offset += String(HTTP_CRLF).length();
 
+
+	// HTTP_HOST
+	String hostString = "Host: " + String(HAP_HOSTNAME) + ".local\r\n";
+	memcpy(buffer + offset, hostString.c_str(), hostString.length());
+	offset += hostString.length();
 
 	if (chunked) {
 		// HTTP_TRANSFER_ENCODING  
 		memcpy(buffer + offset, String(HTTP_TRANSFER_ENCODING).c_str(), String(HTTP_TRANSFER_ENCODING).length());
 		offset += String(HTTP_TRANSFER_ENCODING).length();
-		// CR_LF
-		//memcpy(buffer + offset, String(HTTP_CRLF).c_str(), String(HTTP_CRLF).length());
-		//offset += String(HTTP_CRLF).length();
 
 
 		// CR_LF
@@ -1520,6 +1523,10 @@ bool HAPServer::sendResponse(HAPClient* hapClient, TLV8* response, bool chunked)
 	hapClient->client.print( HTTP_200 );
 	hapClient->client.print( HTTP_CONTENT_TYPE_TLV8 );
 	hapClient->client.print( HTTP_KEEP_ALIVE );
+
+	// HTTP_HOST
+	String hostString = "Host: " + String(HAP_HOSTNAME) + ".local\r\n";
+	hapClient->client.print(hostString);
 
 #if HAP_DEBUG
 	LogD(">>> Sending " + String(response->size()) + " bytes response to client [" + hapClient->client.remoteIP().toString() + "]", true);
@@ -1601,9 +1608,9 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
  	LogD("OK", true);
 
 
- 	_pairings.saveLTPK(_longTermContext->publicKey);
- 	_pairings.saveLTSK(_longTermContext->privateKey);
-
+ 	// _pairings.saveLTPK(_longTermContext->publicKey);
+ 	// _pairings.saveLTSK(_longTermContext->privateKey);
+ 	_pairings.saveKeys(_longTermContext->publicKey, _longTermContext->privateKey);
 
 
  	LogD("Initializing srp ...", false);
