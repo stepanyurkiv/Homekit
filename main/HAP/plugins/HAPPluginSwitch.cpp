@@ -54,7 +54,7 @@ void HAPPluginSwitch::handle(HAPAccessorySet* accessorySet, bool forced){
 }
 
 HAPAccessory* HAPPluginSwitch::init(){
-	LogD("\nInitializing plugin: HAPPluginSwitch ...", false);
+	// LogD("\nInitializing plugin: HAPPluginSwitch ...", false);
 
 	HAPAccessory *accessory = new HAPAccessory();
 	HAPAccessory::addInfoServiceToAccessory(accessory, "Builtin Switch", "ACME", "Switch 1", "123123123", &identifySwitch, version() );
@@ -74,7 +74,7 @@ HAPAccessory* HAPPluginSwitch::init(){
     powerState->valueChangeFunctionCall = &changeState;
     accessory->addCharacteristics(service, powerState);
 
-	LogD("OK", true);
+	// LogD("OK", true);
 
 	return accessory;
 }

@@ -18,7 +18,7 @@
 #define ESP_WPS_MODE WPS_TYPE_PBC
 //#define ESP_WPS_MODE WPS_TYPE_PIN
 
-HAPWiFiHelper::HAPWiFiHelper() {
+HAPWiFiHelper::HAPWiFiHelper() {	
 	WiFi.onEvent(eventHandler);
 }
 
@@ -28,8 +28,9 @@ HAPWiFiHelper::~HAPWiFiHelper() {
 
 void HAPWiFiHelper::startWPS(){
 
-	WiFi.mode(WIFI_STA);
-	//ESP_ERROR_CHECK(esp_wifi_wps_enable(WPS_TYPE_PBC));
+	WiFi.mode(WIFI_MODE_STA);
+	
+	// ESP_ERROR_CHECK(esp_wifi_wps_enable(WPS_TYPE_PBC));
 	ESP_ERROR_CHECK(esp_wifi_wps_start(0));
 
 	LogV("Connecting via WPS ..", false);
@@ -46,7 +47,7 @@ void HAPWiFiHelper::connect(const char* ssid, const char* password) {
 	LogV(ssid, false);
 	LogV( F("* .."), false);
 
-	WiFi.mode(WIFI_STA);
+	WiFi.mode(WIFI_MODE_STA);
 	WiFi.begin(ssid, password);
 
 	while (WiFi.status() != WL_CONNECTED) {

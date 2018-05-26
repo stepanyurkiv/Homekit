@@ -6,8 +6,8 @@
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       0
-#define VERSION_REVISION    2
-#define VERSION_BUILD       0
+#define VERSION_REVISION    1
+#define VERSION_BUILD       1
 
 
 
@@ -17,7 +17,6 @@ HAPPluginDHT::HAPPluginDHT(){
 	_isEnabled = false;
 	_interval = HAP_PLUGIN_INTERVAL;
 	_previousMillis = 0;
-
 
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
@@ -76,10 +75,10 @@ String HAPPluginDHT::getValue(uint8_t type){
 }
 
 HAPAccessory* HAPPluginDHT::init(){
-	LogD("\nInitializing plugin: " + _name + " ...", false);
+	// LogD("\nInitializing plugin: " + _name + " ...", false);
 
 	HAPAccessory *accessory = new HAPAccessory();
-	HAPAccessory::addInfoServiceToAccessory(accessory, "DHT 1", "ET", "DHT", "12345678", &identifyDHT);
+	HAPAccessory::addInfoServiceToAccessory(accessory, "DHT 1", "ET", "DHT", "12345678", &identifyDHT, version() );
 
 
 	HAPService *tempService = new HAPService(serviceType_temperatureSensor);
@@ -113,7 +112,7 @@ HAPAccessory* HAPPluginDHT::init(){
 	accessory->addCharacteristics(humService, humValue);
 
 
-	LogD("OK", true);
+	// LogD("OK", true);
 
 	return accessory;
 }

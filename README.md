@@ -4,6 +4,7 @@
 
 This project aims to implement Homekit for the ESP32 using the Arduino framework where possible.
 
+
 ## Build instructions
 
 This is a application to be used with `Espressif IoT Development Framework (ESP-IDF)`. 
@@ -36,11 +37,32 @@ Add a file called ``` WiFiCredentials.hpp ``` in the ```main``` folder and edit 
 #ifndef WIFICREDENTIALS_HPP_
 #define WIFICREDENTIALS_HPP_
 
-#define WIFI_SSID		"SSID"
-#define WIFI_PASSWORD	"PASSWORD"
+#define WIFI_SSID       "SSID"
+#define WIFI_PASSWORD   "PASSWORD"
 
 #endif /* WIFICREDENTIALS_HPP_ */
 ```
+
+
+## EEPROM Structure
+
+Pairings and long term keys are stored in a EEPROM partition called `eeprom`with a size of `4096 Bytes`.
+To reset the EEPROM partition call `make erase_flash`. 
+
+```c++
+| Address | Description            | Bytes              |  
+| ------- | ---------------------- | -------------------|  
+|       0 | Long Term Public Key   |                 32 |
+|      32 | Long Term Private Key  |                 64 |  
+|         |                        |                    |  
+|      96 | 1. Pairing: id  	   |                 36 |  
+|     132 | 1. Pairing: key  	   |                 36 |  
+|         |                        |                    |  
+|     168 | 2. Pairing: id  	   |                 36 |  
+|     204 | 2. Pairing: key  	   |                 36 |
+|         |                        |                    |  
+```
+
 
 ## Tested with the following apps
 - [hap-client-tool](https://github.com/forty2/hap-client-tool)
