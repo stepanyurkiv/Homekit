@@ -250,6 +250,50 @@ bool HAPServer::begin() {
 
 #endif
 
+
+
+
+	// 
+	// QR Code generation
+	// 
+
+#if HAP_GENERATE_XHM	
+
+	/*
+	 * Generate setupID and xmi uri
+	 */
+	_accessorySet->generateSetupID();
+	
+	//LogD("Homekit setupID: ", false);
+	//LogD(_accessorySet->et.setupID(), true);
+
+
+	LogV("Homekit X-HM URI: " + String(_accessorySet->xhm()), true);
+	LogV("Homekit setup hash:  " + String(_accessorySet->setupHash()), true);
+
+	/*
+	 * Generate QR Code
+	 */
+	uint8_t qrcodeData[qrcode_getBufferSize(3)];
+	qrcode_initText(&_qrcode, qrcodeData, 3, ECC_HIGH, _accessorySet->xhm());
+
+#if HAP_PRINT_QRCODE
+
+	for (uint8_t y = 0; y < _qrcode.size; y++) {
+		// Left quiet zone
+		Serial.print("        ");
+		// Each horizontal module
+		for (uint8_t x = 0; x < _qrcode.size; x++) {
+            // Print each module (UTF-8 \u2588 is a solid block)
+			Serial.print(qrcode_getModule(&_qrcode, x, y) ? "\u2588\u2588": "  ");
+		}
+		Serial.print("\n");
+	}
+#endif
+
+#endif
+
+
   	// 
   	// Loading plugins
   	// 
@@ -290,14 +334,8 @@ bool HAPServer::begin() {
 	}
 
 
-	//
-	// Show event listerners
-	//
-  	LogD( "Number of event listeners:  ", false );
-  	LogD( String(_eventManager.numListeners()), true );
+
 	
-
-
 
 	//
 	// Starting HAP server
@@ -347,47 +385,6 @@ bool HAPServer::begin() {
 	LogV(F("OK"), true);
 
 
-	// 
-	// QR Code generation
-	// 
-
-#if HAP_GENERATE_XHM	
-
-	/*
-	 * Generate setupID and xmi uri
-	 */
-	_accessorySet->generateSetupID();
-	
-	//LogD("Homekit setupID: ", false);
-	//LogD(_accessorySet->et.setupID(), true);
-
-
-	LogV("Homekit X-HM URI: ", false);
-	LogV(_accessorySet->xhm(), true);
-
-	/*
-	 * Generate QR Code
-	 */
-	uint8_t qrcodeData[qrcode_getBufferSize(3)];
-	qrcode_initText(&_qrcode, qrcodeData, 3, ECC_HIGH, _accessorySet->xhm());
-
-
-#if HAP_PRINT_QRCODE
-
-	for (uint8_t y = 0; y < _qrcode.size; y++) {
-		// Left quiet zone
-		Serial.print("        ");
-		// Each horizontal module
-		for (uint8_t x = 0; x < _qrcode.size; x++) {
-            // Print each module (UTF-8 \u2588 is a solid block)
-			Serial.print(qrcode_getModule(&_qrcode, x, y) ? "\u2588\u2588": "  ");
-		}
-		Serial.print("\n");
-	}
-#endif
-
-#endif
-
 #if HAP_DEBUG	
 	LogD(_accessorySet->describe(), true);    
 #endif
@@ -401,6 +398,13 @@ bool HAPServer::begin() {
 		LogI(_accessorySet->pinCode(), true);
 	}
 	
+	//
+	// Show event listerners
+	//
+  	LogV( "Number of event listeners:  ", false );
+  	LogV( String(_eventManager.numListeners()), true );
+
+
 	return true;
 }
 
@@ -478,7 +482,6 @@ bool HAPServer::updateServiceTxt() {
 	hapTxtData[7].key 		= (char*) "ci";
 	hapTxtData[7].value 	= (char*) malloc(sizeof(char) * HAPHelper::numDigits(_accessorySet->accessoryType()) );
 	sprintf(hapTxtData[7].value, "%d", _accessorySet->accessoryType() );
-
 
 #if HAP_GENERATE_XHM
 	// sh - Required for QR Code 

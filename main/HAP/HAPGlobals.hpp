@@ -24,7 +24,7 @@
 #define HAP_USE_WOLFSSL_HKDF		1		// Use wolfssl
 											// Default: 1
 
-#define HAP_GENERATE_XHM			0		// Create hash and qr code
+#define HAP_GENERATE_XHM			1		// Create hash and qr code
 											// Default: 0
 
 #define HAP_UPDATE_SERVER 			1		// Use HAP update server to check

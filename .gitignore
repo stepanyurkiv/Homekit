@@ -41,3 +41,7 @@ node_modules/
 
 ### else ###
 git-submodules.sh
+
+### Log files ###
+monitor.log
+monitor.html
