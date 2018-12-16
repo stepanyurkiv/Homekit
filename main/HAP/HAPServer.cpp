@@ -41,8 +41,6 @@
 
 #define IS_BIG_ENDIAN (*(uint16_t *)"\0\xff" < 0x100)
 
-#define HAP_RESET_EEPROM 0
-
 
 //
 // init static variables
@@ -124,6 +122,24 @@ bool HAPServer::begin() {
 	LogV("OK", true);
 
 
+	
+#if HAP_NTP_ENABLED
+	LogV( F("Starting NTP client ..."), false);
+	configTzTime(HAP_NTP_TZ_INFO, HAP_NTP_SERVER_URL);
+
+	if (getLocalTime(&_timeinfo, 10000)) {  // wait up to 10sec to sync
+		//Serial.println(&_timeinfo, "Time set: %B %d %Y %H:%M:%S (%A)");		
+		LogV(F("OK"), true);
+		LogV("Set time to: " + timeString(), true);
+	} else {
+		LogV(F("[ERROR] Time not set!"), true);	
+  	}
+
+
+#endif
+
+
+
 	// Todo: Move pairings to accessorySet
 	LogV("Loading pairings ...", false);	
 	if (_pairings.begin()) {
@@ -142,7 +158,7 @@ bool HAPServer::begin() {
 	LogV("OK", true);
 #endif
 
-	LogI("Loaded " + String(_pairings.size()) + " pairings from EEPROM!", true);
+	LogV("Loaded " + String(_pairings.size()) + " pairings from EEPROM", true);
 
 #if HAP_DEBUG
 	_pairings.print();
@@ -177,21 +193,6 @@ bool HAPServer::begin() {
 		LogV("OK", true);
 	}
 
-
-
-
-	LogV( F("\nStarting event manager ..."), false);
-  	listenerMemberFunction2.mObj = this;
-  	listenerMemberFunction2.mf = &HAPServer::handleEvents;
-  	
-  	_eventManager.addListener( EventManager::kEventEvent, &listenerMemberFunction2 );
-  	LogD( "\nNumber of listeners is:  ", false );
-  	LogD( String(_eventManager.numListeners()), true );
-	LogV(F("OK"), true);
-
-
-	
-
 	LogV("Starting encrpytion engine ...", false);
 	error_code = HAPEncryption::begin();
 	if (error_code != 0){
@@ -210,6 +211,14 @@ bool HAPServer::begin() {
 	LogV("OK", true);
 
 
+	// 
+	// Event Manager
+	//
+	LogV( F("\nAdding listener to event manager ..."), false);
+  	listenerMemberFunction2.mObj = this;
+  	listenerMemberFunction2.mf = &HAPServer::handleEvents;
+  	_eventManager.addListener( EventManager::kEventEvent, &listenerMemberFunction2 );	  	
+	LogV(F("OK"), true);
 
 
 #if HAP_UPDATE_SERVER
@@ -217,7 +226,7 @@ bool HAPServer::begin() {
 	//
 	// Starting Arduino OTA
 	//
-	LogV( F("Starting Arduino OTA ..."), false);
+	LogV( F("Starting arduino ota ..."), false);
 	_updater.begin();
 	LogV( F("OK"), true);
 
@@ -234,32 +243,12 @@ bool HAPServer::begin() {
 
 	if ( _updater.checkUpdateAvailable(&_firmware.version) ) {
 		_updater.execOTA();
-	}
-	LogV( F("OK - No update available"), true);
-
-#endif
-
-
-
-
-	
-#if HAP_NTP_ENABLED
-	LogV( F("Starting NTP client ..."), false);
-	configTzTime(HAP_NTP_TZ_INFO, HAP_NTP_SERVER_URL);
-
-	if (getLocalTime(&_timeinfo, 10000)) {  // wait up to 10sec to sync
-		//Serial.println(&_timeinfo, "Time set: %B %d %Y %H:%M:%S (%A)");		
-		LogV(F("OK"), true);
-		LogV("Set time to: " + timeString(), true);
 	} else {
-		LogV(F("[ERROR] Time not set!"), true);	
-  	}
-
+		LogV( F("No update available"), true);	
+	}
+	LogV( F("OK"), true);
 
 #endif
-
-
-
 
   	// 
   	// Loading plugins
@@ -281,8 +270,10 @@ bool HAPServer::begin() {
     		LogI("", true);
 
 	    	if ( plugin->type() == HAP_PLUGIN_TYPE_ACCESSORY) {
-	    		HAPAccessory *accessory = plugin->init();
+	    		HAPAccessory *accessory = plugin->init(&_eventManager);
 	    		_accessorySet->addAccessory(accessory);    		
+	    	} else if ( plugin->type() == HAP_PLUGIN_TYPE_STORAGE) {
+	    		plugin->init(&_eventManager);	    		
 	    	}
 
 	    	if (plugin->interval() > 0 && plugin->interval() < _minimalPluginInterval) {
@@ -299,29 +290,43 @@ bool HAPServer::begin() {
 	}
 
 
+	//
+	// Show event listerners
+	//
+  	LogD( "Number of event listeners:  ", false );
+  	LogD( String(_eventManager.numListeners()), true );
+	
 
 
 
 	//
 	// Starting HAP server
 	// 
-	LogV( F("Starting HAP server ..."), false);
+	LogV( F("Starting homekit server ..."), false);
 	_server.begin();
 	_server.setNoDelay(true);
 	LogV(F("OK"), true);
   	
 
+	//
+	// Starting Webserver
+	// 
+#if HAP_ENABLE_WEBSERVER
+	LogV("Starting webserver ...", false);
+	_webserver.begin();
+	LogV("OK", true);
+#endif
+
 
 	// 
 	// Bonjour
 	// 
-
 	// Set up mDNS responder:
 	// - first argument is the domain name, in this example
 	//   the fully-qualified domain name is "esp8266.local"
 	// - second argument is the IP address to advertise
 	//   we send our IP address on the WiFi network
-	LogV( F("Advertising Bonjour service ..."), false);
+	LogV( F("Advertising bonjour service ..."), false);
 	if (!MDNS.begin(HAP_HOSTNAME)) {
 		LogE( F("Error setting up MDNS responder!"), true);
 		return false;
@@ -330,13 +335,16 @@ bool HAPServer::begin() {
 	// Add service to MDNS-SD
 	MDNS.addService("_hap", "_tcp", _port);
 
+#if HAP_ENABLE_WEBSERVER	
+	MDNS.addService("http", "_tcp", 80);
+#endif
+
 	if ( !updateServiceTxt() ){
 		LogE( F("Error advertising HAP service!"), true);
 		return false;
 	}
 
 	LogV(F("OK"), true);
-
 
 
 	// 
@@ -380,20 +388,19 @@ bool HAPServer::begin() {
 
 #endif
 
-
-	// 
-	// Startup completed
-	// 
-	// LogI( F("OK"), true);
-	LogI("Homekit pin code: ", false);
-	LogI(_accessorySet->pinCode(), true);
-
-	
 #if HAP_DEBUG	
 	LogD(_accessorySet->describe(), true);    
 #endif
 
-
+	// 
+	// Startup completed
+	// 
+	LogI("Homekit has started successfully!", true);	
+	if (_pairings.size() == 0) {
+		LogI("Homekit pin code: ", false);
+		LogI(_accessorySet->pinCode(), true);
+	}
+	
 	return true;
 }
 
@@ -552,6 +559,10 @@ void HAPServer::handle() {
 	_updater.handle();
 #endif	
 
+	// Webserver
+#if HAP_ENABLE_WEBSERVER
+	_webserver.handle();
+#endif
 
 	// Handle any events that are in the queue
 	_eventManager.processEvent();
@@ -695,7 +706,7 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 		// Serial.printf("AAD: %02X%02X - %d\n", AAD[0], AAD[1], trueLength);				
 		// Serial.printf("availableSize: %d\n", availableSize);
 
-		LogD("\n<<< Need " + String(trueLength) + " bytes and have " + String(availableSize) + " bytes", true);
+		LogD("\nNeed " + String(trueLength) + " bytes and have " + String(availableSize) + " bytes", true);
 		while (trueLength > availableSize) {
 			// The packet is bigger than the available data; wait till more comes in
 			delay(1);
@@ -727,7 +738,7 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 		// hmac
 		uint8_t hmac[HAP_ENCRYPTION_HMAC_SIZE];	// 16 is the size of the HMAC
 		availableSize = hapClient->client.available();
-		LogD("<<< Need " + String(HAP_ENCRYPTION_HMAC_SIZE) + " bytes and have " + String(availableSize) + " bytes", true);
+		LogD("Need " + String(HAP_ENCRYPTION_HMAC_SIZE) + " bytes and have " + String(availableSize) + " bytes", true);
 		while ( HAP_ENCRYPTION_HMAC_SIZE > availableSize ) {
 			// The packet is bigger than the available data; wait till more comes in
 			delay(1);
@@ -825,8 +836,8 @@ bool HAPServer::handlePath(HAPClient* hapClient, String bodyData){
 			handleCharacteristicsPut( hapClient, bodyData );
 		}		
 	} else {
-		LogW("Not yet implemented! >>> client [" + hapClient->client.remoteIP().toString() + "] ", false);
-		LogW("requested -> method: " + String(hapClient->request.method) + " - path: " + String(hapClient->request.path), true);
+		LogE("Not yet implemented! >>> client [" + hapClient->client.remoteIP().toString() + "] ", false);
+		LogE("requested -> method: " + String(hapClient->request.method) + " - path: " + String(hapClient->request.path), true);
 
 		return false;
 	}
@@ -1333,8 +1344,8 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 	response = httpStatus;
 	//response += String( HTTP_CRLF );
 
-	if (httpStatus == HTTP_204) {
-		response += String( HTTP_CRLF );
+	if (httpStatus == HTTP_204) {		
+		//response += String( HTTP_CRLF );
 	} else {
 		response += String( HTTP_CONTENT_TYPE_HAPJSON );
 
@@ -1353,30 +1364,26 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 			response += String(chunkSize);
 
 		} else {
-			response += String("Content-Length: " + String(plainText.length()));
-			response += String( HTTP_CRLF );
+			response += String("Content-Length: " + String(plainText.length()) + "\r\n" );			
 			response += String( HTTP_CRLF );
 		}	
 		
 		
 		response += plainText;
-		response += String( HTTP_CRLF );
-
-		//int bytesSent = hapClient->client.println(encrypted);
-		//hapClient->client.write( HTTP_CRLF );
-		//free(outResponse);
-
+		
 		if (chunked) {
+			response += String( HTTP_CRLF );
 			response += String(0);			
 			response += String( HTTP_CRLF );		
+
+			response += String( HTTP_CRLF );
 		}
-		response += String( HTTP_CRLF );
+		
 	}
 
-
-#if 0
-	Serial.println("response: ");
-	HAPHelper::arrayPrint((uint8_t*)response.c_str(), response.length());
+#if HAP_DEBUG
+	LogD("response: ", true);
+	LogD(HAPHelper::printUnescaped(response), true);
 #endif
 
 
@@ -1396,7 +1403,7 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 
 #if HAP_DEBUG
 	LogD(response, true);	
-	HAPHelper::arrayPrint((uint8_t*)encrypted, encryptedLen);
+	//HAPHelper::arrayPrint((uint8_t*)encrypted, encryptedLen);
 #endif
 
 
@@ -1977,7 +1984,7 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
             (uint8_t*)HAPDeviceID::deviceID().c_str(), 17, 
             _longTermContext->publicKey, ED25519_PUBLIC_KEY_LENGTH, &acc_info_len);
 
-    LogD( F("\nVerifying signature"), false);
+    LogD( F("\nVerifying signature ..."), false);
 	int acc_signature_length = ED25519_SIGN_LENGTH;
     uint8_t acc_signature[ED25519_SIGN_LENGTH] = {0,};
     err_code = ed25519_sign(_longTermContext->publicKey, _longTermContext->privateKey, acc_info, acc_info_len,
@@ -2249,14 +2256,13 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	LogD( F("OK"), true);
 
 	LogD("Saving context ...", false);
-	
 
 	hapClient->verifyContext = new struct HAPVerifyContext;	
 	memcpy(hapClient->verifyContext->secret, sharedSecret, HKDF_KEY_LEN);
 	memcpy(hapClient->verifyContext->sessionKey, sharedSecret, CURVE25519_SECRET_LENGTH);
 	memcpy(hapClient->verifyContext->accessoryLTPK, acc_curve_public_key, ED25519_PUBLIC_KEY_LENGTH);
 	memcpy(hapClient->verifyContext->deviceLTPK, ios_device_curve_key, ED25519_PUBLIC_KEY_LENGTH);
-
+	LogD( F("OK"), true);
     
 	LogD( F("Sending response ..."), false);
 	response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M2);
@@ -2365,15 +2371,15 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 	}
 
 
+
+	// LogD("iOS device_pairing_id: ", true);
+	// HAPHelper::arrayPrint(ios_device_pairing_id, ios_device_pairing_id_len);	
+
+
 #if HAP_DEBUG
-	LogD("iOS device_pairing_id: ", true);
-	HAPHelper::arrayPrint(ios_device_pairing_id, ios_device_pairing_id_len);	
-#endif
-
-
 	LogD("Looking up iOS device LTPK for client: ", true);
 	HAPHelper::arrayPrint(ios_device_pairing_id, ios_device_pairing_id_len);	
-
+#endif
 
 	uint8_t ios_device_ltpk[ED25519_PUBLIC_KEY_LENGTH];
 	err_code = _pairings.getKey(ios_device_pairing_id, ios_device_ltpk);
@@ -2387,10 +2393,10 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 		return false;
 	}
 		
-
+#if HAP_DEBUG
 	LogD("Found LTPK: ", true);	
 	HAPHelper::arrayPrint(ios_device_ltpk, ED25519_PUBLIC_KEY_LENGTH);
-
+#endif
 
 	// TODO NOW: OK
 	uint8_t ios_device_signature_len = subTlv.size(HAP_TLV_TYPE_SIGNATURE);
@@ -2409,9 +2415,11 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 		return false;
 	}
 
-	LogD("Found Signature: ", false);
+#if HAP_DEBUG
+	LogD("Found Signature: ", true);
 	HAPHelper::arrayPrint(ios_device_signature, ios_device_signature_len);
-    
+#endif
+
 	int ios_device_info_len = 0;
     uint8_t* ios_device_info = concat3(hapClient->verifyContext->deviceLTPK, HKDF_KEY_LEN, 
             ios_device_pairing_id, ios_device_pairing_id_len, 
@@ -2419,7 +2427,7 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 
 
 
-    LogD( F("Verifying Signature ..."), true);
+    LogD( F("Verifying Signature ..."), false);
 	int verified = ed25519_verify(ios_device_ltpk, ED25519_PUBLIC_KEY_LENGTH,
             ios_device_signature, ios_device_signature_len,
             ios_device_info, ios_device_info_len);
@@ -2434,12 +2442,14 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
         sendResponse(hapClient, &response);
         return false;
 	}
+
+	LogD( F("OK"), true);
     
 
 	// TODO Move ecrypt & decrypt keys out of pairSetup!
     err_code = hkdf_key_get(HKDF_KEY_TYPE_CONTROL_READ, hapClient->verifyContext->secret, CURVE25519_SECRET_LENGTH, hapClient->encryptionContext->encryptKey);
 	if (err_code != 0) {
-		LogE( F("[ERROR] hkdf_key_get failed"), true);		    	
+		LogE( F("[ERROR] HKDF encrpytion key not available!"), true);		    	
 		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M4);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_ERROR_AUTHENTICATON);
 
@@ -2450,7 +2460,7 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 
 	err_code = hkdf_key_get(HKDF_KEY_TYPE_CONTROL_WRITE, hapClient->verifyContext->secret, CURVE25519_SECRET_LENGTH, hapClient->encryptionContext->decryptKey);
 	if (err_code != 0) {
-		LogE( F("[ERROR] hkdf_key_get failed"), true);		    	
+		LogE( F("[ERROR] HKDF decryption key not available!"), true);		    	
 		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M4);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_ERROR_AUTHENTICATON);
 
@@ -2535,7 +2545,7 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 		characteristics_0["iid"] = iid;
 
 		size_t outSize = 0;
-		int32_t errorCode = getValueForCharacteristics(aid, iid, NULL, &outSize);
+		int32_t errorCode = _accessorySet->getValueForCharacteristics(aid, iid, NULL, &outSize);
 
 #if HAP_DEBUG
 			LogD( "errorCode: " + String(errorCode), true );
@@ -2549,31 +2559,29 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 		} else {
 			// outSize = outSize + 1;
 			char value[outSize];
-			getValueForCharacteristics(aid, iid, value, &outSize);
-
-#if HAP_DEBUG
-			LogD( "value: " + String(value), true );
-#endif
+			_accessorySet->getValueForCharacteristics(aid, iid, value, &outSize);
 
 			if ( strcmp(value, "true") == 0 ) {
-				characteristics_0["value"] = 1;
+				characteristics_0["value"] = true;
 			} else if ( strcmp(value, "false") == 0 ) {
-				characteristics_0["value"] = 0;
+				characteristics_0["value"] = false;
 			} else {
 				characteristics_0["value"] = value;	
 			}
+
+#if HAP_DEBUG
+			LogD( "value: " + characteristics_0["value"].as<String>(), true );
+#endif
 		}
 		
 		idStr = idStr.substring(endIndex + 1); 
 	} while ( idStr.length() > 0 );
 
 	String response;			
-	root.printTo(response);
+	root.prettyPrintTo(response);
 
 #if HAP_DEBUG
-
 	root.prettyPrintTo(Serial);
-
 #endif
 
 
@@ -2599,54 +2607,7 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 // 	return "--ERROR_OCCURED--";
 // }
 
-int32_t HAPServer::getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize){
-	characteristics *c = getCharacteristics(aid, iid);
-	if (c != nullptr) {		
-		*outSize = c->value().length() + 1;
-		if (out != NULL){
-			 c->value().toCharArray(out, *outSize);	
-		}		
-		return 0;
-	}
-	return HAP_STATUS_RESOURCE_NOT_FOUND;
-}
 
-
-characteristics* HAPServer::getCharacteristics(int aid, int iid){
-	HAPAccessory *a = _accessorySet->accessoryWithAID(aid);		
-		
-		if (a == NULL) {
-
-			LogE("[ERROR] Accessory with aid: ", false);
-    		LogE(String(aid), false);
-    		LogE(" not found! - ErrorCode: ", false);
-    		LogE(String(HAP_STATUS_RESOURCE_NOT_FOUND), true);
-
-    		//error_code = HAP_STATUS_RESOURCE_NOT_FOUND;
-    		//errorOccured = true;	
-    		return nullptr;	    			
-		} 
-		else {
-
-			characteristics *c = a->characteristicsAtIndex(iid);
-
-			if (c == NULL) {
-				LogE("[ERROR] Characteristics with aid: ", false);
-	    		LogE(String(aid), false);
-	    		LogE(" - iid: ", false);
-	    		LogE(String(iid), false);
-				LogE(" not found! - ErrorCode: ", false);
-    			LogE(String(HAP_STATUS_RESOURCE_NOT_FOUND), true);
-    			return nullptr;
-			} else {
-
-				return c;
-			}			
-
-		}
-
-	return nullptr;
-}
 
 
 void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
@@ -2686,12 +2647,6 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 
     	int error_code = HAP_STATUS_SUCCESS;
 
-    	
-		Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><");
-    	Serial.printf("aid: %d\n", aid);
-		Serial.println(_accessorySet->describe());
-		Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><");
-
     	HAPAccessory *a = _accessorySet->accessoryWithAID(aid);
     	if (a == NULL) {
     		LogE("[ERROR] Accessory with aid: ", false);
@@ -2723,7 +2678,7 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 					isEvent = true;
 
 
-					Serial.print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> NESTED EVENT: ");
+					
 					Serial.println(isEvent);
 					Serial.println(chr["ev"].as<String>());
 
@@ -2737,10 +2692,10 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 
 					struct HAPEvent event = HAPEvent(hapClient, aid, iid, chr["ev"].as<String>());					
 
-
-					LogI("HAPCLIENT IP: " + hapClient->client.remoteIP().toString(), true);
-					LogI("EVENT IP:     " + event.hapClient->client.remoteIP().toString(), true);
-
+#if HAP_DEBUG
+					LogD("HAPCLIENT IP: " + hapClient->client.remoteIP().toString(), true);
+					LogD("EVENT IP:     " + event.hapClient->client.remoteIP().toString(), true);
+#endif
 
 					_eventManager.queueEvent( EventManager::kEventEvent, event);
 				} else {
@@ -2813,84 +2768,92 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 	}
 }
 
+// void HAPServer::handlePluginEvents( int eventCode, struct HAPEvent eventParam ){
+// 	LogV("<<< Handle plugin event: code: " + String(eventCode), true);
+
+// 	for (auto & plugin : _plugins) {					
+// 		if ( plugin->isEnabled() && plugin->type() == HAP_PLUGIN_TYPE_STORAGE) {  
+// 			plugin->handleEvent(_accessorySet, eventCode, eventParam);	
+// 		}				
+// 	}
+// }
+
 void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 {
-        LogI("<<< Handle event: code: " + String(eventCode) + " - value: ", false);
-        LogI(eventParam.value, true);
+    LogV("<<< Handle event: code: " + String(eventCode) + " - value: ", false);
+    LogV(eventParam.value, true);
 
-        if (eventCode == EventManager::kEventEvent) {
+	String response;			
+
+    if (eventCode == EventManager::kEventEvent) {
 #if 0
-        	Serial.println("aid: " + String(eventParam.aid));
-        	Serial.println("iid: " + String(eventParam.iid));        	
-        	Serial.println("value: " + String(eventParam.value));
+        Serial.println("aid: " + String(eventParam.aid));
+    	Serial.println("iid: " + String(eventParam.iid));        	
+       	Serial.println("value: " + String(eventParam.value));
 #endif
-        	
+
+        const size_t bufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(3);
+		DynamicJsonBuffer jsonBuffer(bufferSize);
+
+		JsonObject& root = jsonBuffer.createObject();
+
+		JsonArray& characteristics = root.createNestedArray("characteristics");
+
+		JsonObject& characteristics_0 = characteristics.createNestedObject();
+		characteristics_0["aid"] = eventParam.aid;
+		characteristics_0["iid"] = eventParam.iid;
 
 
-        	const size_t bufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(3);
-			DynamicJsonBuffer jsonBuffer(bufferSize);
+    	// String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);        	
 
-			JsonObject& root = jsonBuffer.createObject();
+    	size_t outSize = 0;
+    	int32_t errorCode = 0;
 
-			JsonArray& characteristics = root.createNestedArray("characteristics");
-
-			JsonObject& characteristics_0 = characteristics.createNestedObject();
-			characteristics_0["aid"] = eventParam.aid;
-			characteristics_0["iid"] = eventParam.iid;
-
-
-        	// String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);        	
-
-        	size_t outSize = 0;
-        	int32_t errorCode = 0;
-
-        	errorCode = getValueForCharacteristics(eventParam.aid, eventParam.iid, NULL, &outSize);
+    	errorCode = _accessorySet->getValueForCharacteristics(eventParam.aid, eventParam.iid, NULL, &outSize);
 
 #if HAP_DEBUG
-			LogD( "errorCode: " + String(errorCode), true );
-			LogD( "outSize: " + String(outSize), true );
+		LogD( "errorCode: " + String(errorCode), true );
+		//LogD( "outSize: " + String(outSize), true );
 #endif
 
-        	if ( errorCode != 0){
-        		// TODO:
-        		characteristics_0["status"] = errorCode;
-        	} else {
+    	if ( errorCode != 0){
+        	// TODO:
+    		characteristics_0["status"] = errorCode;
+    	} else {
 
-        		// outSize = outSize + 1;
-				char value[outSize];
-				getValueForCharacteristics(eventParam.aid, eventParam.iid, value, &outSize);
+    		// outSize = outSize + 1;
+			char value[outSize];
+			_accessorySet->getValueForCharacteristics(eventParam.aid, eventParam.iid, value, &outSize);
 
 
 #if HAP_DEBUG
-				LogD( "value: " + String(value), true );
+			LogD( "value: " + String(value), true );
 #endif
 
 
-				if ( strcmp(value, "true") == 0 ) {
-					characteristics_0["value"] = 1;
-				} else if ( strcmp(value, "false") == 0 ) {
-					characteristics_0["value"] = 0;
-				} else {
-					characteristics_0["value"] = value;	
-				}
-        	}
-			
-
-			String response;			
-			root.printTo(response);
-
-#if HAP_DEBUG
-			root.prettyPrintTo(Serial);
-#endif
-
-			LogV("Sending EVENT to client [" + eventParam.hapClient->client.remoteIP().toString() + "] ...", true);
-			if ( eventParam.hapClient->client.connected() ){				
-				sendEncrypt(eventParam.hapClient, EVENT_200, response, false);	
+			if ( strcmp(value, "true") == 0 ) {
+				characteristics_0["value"] = 1;
+			} else if ( strcmp(value, "false") == 0 ) {
+				characteristics_0["value"] = 0;
 			} else {
-				LogW("[WARNING] No client available to send the event to!", true);
+				characteristics_0["value"] = value;	
 			}
-        	
-        }
+		}
+		
+		root.printTo(response);
+
+#if HAP_DEBUG
+		root.prettyPrintTo(Serial);
+		Serial.println();
+#endif
+	}
+
+	LogV("Sending EVENT to client [" + eventParam.hapClient->client.remoteIP().toString() + "] ...", true);
+	if ( eventParam.hapClient->client.connected() ){				
+		sendEncrypt(eventParam.hapClient, EVENT_200, response, false);	
+	} else {
+		LogW("[WARNING] No client available to send the event to!", true);
+	}
 };
 
 bool HAPServer::isPaired(){

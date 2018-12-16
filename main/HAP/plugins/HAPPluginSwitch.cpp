@@ -21,7 +21,7 @@
 HAPPluginSwitch::HAPPluginSwitch(){
     _type               = HAP_PLUGIN_TYPE_ACCESSORY;
     _name               = "HAPPluginSwitch";
-    _isEnabled          = true;
+    _isEnabled          = false;
     _interval           = 0;
     _previousMillis     = 0;
     _isOn               = true;
@@ -48,12 +48,17 @@ void changeState(bool oldValue, bool newValue) {
     }           
 }
 
+
 void HAPPluginSwitch::handle(HAPAccessorySet* accessorySet, bool forced){
-
-
 }
 
-HAPAccessory* HAPPluginSwitch::init(){
+void HAPPluginSwitch::handleEvents(int eventCode, struct HAPEvent eventParam){
+	LogE("!!!!!!!!!!! HANDLE PLUGIN EVENT !!!!!!!!!!!!!!!", true);
+}
+
+
+
+HAPAccessory* HAPPluginSwitch::init(EventManager* eventManager){
 	// LogD("\nInitializing plugin: HAPPluginSwitch ...", false);
 
 	HAPAccessory *accessory = new HAPAccessory();

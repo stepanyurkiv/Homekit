@@ -294,3 +294,52 @@ String HAPAccessorySet::describe() {
     
     return result;
 }
+
+int32_t HAPAccessorySet::getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize){
+	characteristics *c = getCharacteristics(aid, iid);
+	if (c != nullptr) {		
+		*outSize = c->value().length() + 1;
+		if (out != NULL){
+			 c->value().toCharArray(out, *outSize);	
+		}		
+		return 0;
+	}
+	return HAP_STATUS_RESOURCE_NOT_FOUND;
+}
+
+
+characteristics* HAPAccessorySet::getCharacteristics(int aid, int iid){
+	HAPAccessory *a = accessoryWithAID(aid);		
+		
+		if (a == NULL) {
+
+			LogE("[ERROR] Accessory with aid: ", false);
+    		LogE(String(aid), false);
+    		LogE(" not found! - ErrorCode: ", false);
+    		LogE(String(HAP_STATUS_RESOURCE_NOT_FOUND), true);
+
+    		//error_code = HAP_STATUS_RESOURCE_NOT_FOUND;
+    		//errorOccured = true;	
+    		return nullptr;	    			
+		} 
+		else {
+
+			characteristics *c = a->characteristicsAtIndex(iid);
+
+			if (c == NULL) {
+				LogE("[ERROR] Characteristics with aid: ", false);
+	    		LogE(String(aid), false);
+	    		LogE(" - iid: ", false);
+	    		LogE(String(iid), false);
+				LogE(" not found! - ErrorCode: ", false);
+    			LogE(String(HAP_STATUS_RESOURCE_NOT_FOUND), true);
+    			return nullptr;
+			} else {
+
+				return c;
+			}			
+
+		}
+
+	return nullptr;
+}

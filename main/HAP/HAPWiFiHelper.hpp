@@ -11,6 +11,7 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include "HAPGlobals.hpp"
 
 class HAPWiFiHelper {
 public:

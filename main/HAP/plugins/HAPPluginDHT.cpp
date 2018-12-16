@@ -23,7 +23,6 @@ HAPPluginDHT::HAPPluginDHT(){
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
 
-
 	randomSeed(analogRead(0));
 }
 
@@ -42,9 +41,13 @@ void changeHum(int oldValue, int newValue) {
 
 void HAPPluginDHT::handle(HAPAccessorySet* accessorySet, bool forced){	
 	if (shouldHandle() || forced) {		
-		setValue(charType_currentTemperature, getValue(charType_currentTemperature), String(random(0,10)));
-		setValue(charType_currentHumidity, getValue(charType_currentHumidity), String(random(0,100)));
+		setValue(charType_currentTemperature, getValue(charType_currentTemperature), String(random(20,40)));
+		setValue(charType_currentHumidity, getValue(charType_currentHumidity), String(random(50,60)));
 	}
+}
+
+void HAPPluginDHT::handleEvents(int eventCode, struct HAPEvent eventParam){
+	LogE("!!!!!!!!!!! HANDLE PLUGIN EVENT !!!!!!!!!!!!!!!", true);
 }
 
 void HAPPluginDHT::setValue(String oldValue, String newValue){
@@ -74,8 +77,8 @@ String HAPPluginDHT::getValue(uint8_t type){
 	return "";
 }
 
-HAPAccessory* HAPPluginDHT::init(){
-	// LogD("\nInitializing plugin: " + _name + " ...", false);
+HAPAccessory* HAPPluginDHT::init(EventManager* eventManager){
+	LogD("\nInitializing plugin: " + _name + " ...", false);
 
 	HAPAccessory *accessory = new HAPAccessory();
 	HAPAccessory::addInfoServiceToAccessory(accessory, "DHT 1", "ET", "DHT", "12345678", &identifyDHT, version() );
@@ -95,8 +98,6 @@ HAPAccessory* HAPPluginDHT::init(){
 	tempValue->valueChangeFunctionCall = &changeTemp;
 	accessory->addCharacteristics(tempService, tempValue);
 
-
-
 	HAPService *humService = new HAPService(serviceType_humiditySensor);
 	accessory->addService(humService);
 
@@ -112,7 +113,7 @@ HAPAccessory* HAPPluginDHT::init(){
 	accessory->addCharacteristics(humService, humValue);
 
 
-	// LogD("OK", true);
+	LogD("OK", true);
 
 	return accessory;
 }

@@ -50,9 +50,21 @@ void HAPWiFiHelper::connect(const char* ssid, const char* password) {
 	WiFi.mode(WIFI_MODE_STA);
 	WiFi.begin(ssid, password);
 
+	uint32_t startTime = millis();
+
 	while (WiFi.status() != WL_CONNECTED) {
 		delay(500);
 		LogV( F("."), false);
+		
+		if ( startTime + ESP_WIFI_CONNECTION_TIMEOUT < millis() ){			
+			LogE ( "ERROR - Could not connect to ", false);
+			LogE(ssid, true);			
+			LogE ( F("################################################"), true);
+			LogE ( F("#            !!! Restarting now !!!            #"), true);
+			LogE ( F("################################################"), true);
+			ESP.restart();
+		}
+
 	}
 	LogFlush();
 	// LogV( F("OK"), true); // is done through event

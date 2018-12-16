@@ -21,6 +21,8 @@
 #include "HAPLogger.hpp"
 #include "HAPVersion.hpp"
 
+#include "EventManager.h"
+
 //namespace HAPPluginSystem {
 
 enum HAP_PLUGIN_TYPE {
@@ -34,13 +36,14 @@ class HAPPlugin {
 
 public:
 	//virtual void doSomething() = 0;
-	virtual HAPAccessory* init() = 0;
+	virtual HAPAccessory* init(EventManager* eventManager = nullptr) = 0;
 	virtual void setValue(String oldValue, String newValue) = 0;
 	virtual void setValue(uint8_t type, String oldValue, String newValue) = 0;
 
 	virtual String getValue() = 0;
 
 	virtual void handle(HAPAccessorySet* accessorySet, bool forced = false) = 0;
+	virtual void handleEvents(int eventCode, struct HAPEvent eventParam) = 0;
 
 	inline enum HAP_PLUGIN_TYPE type(){
 		return _type;
@@ -98,6 +101,10 @@ protected:
 	unsigned long 	_previousMillis;
 
 	HAPVersion 		_version;
+
+	EventManager*	_eventManager;
+
+	MemberFunctionCallable<HAPPlugin> listenerMemberFunctionPlugin;
 };
 
 	/* 

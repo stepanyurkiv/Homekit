@@ -1,0 +1,5 @@
+Toolchain path: /Users/michael/esp/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc
+Toolchain version: crosstool-ng-1.22.0-80-g6c4433a
+Compiler version: 5.2.0
+Python requirements from /Users/michael/esp/esp-idf/requirements.txt are satisfied.
+MONITOR

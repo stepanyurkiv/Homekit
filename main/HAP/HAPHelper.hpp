@@ -43,6 +43,7 @@ public:
 	static String dictionaryWrap(String *key, String *value, unsigned short len);
 
 
+	static String printUnescaped(String str);
 
 	static bool containsNestedKey(const JsonObject& obj, const char* key);
 };

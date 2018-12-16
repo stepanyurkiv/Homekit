@@ -18,7 +18,7 @@ class HAPPluginSwitch: public HAPPlugin {
 public:
 
 	HAPPluginSwitch();
-	HAPAccessory* init();
+	HAPAccessory* init(EventManager* eventManager = nullptr);
 
 	void setValue(String oldValue, String newValue);
 	void setValue(uint8_t type, String oldValue, String newValue);
@@ -27,7 +27,7 @@ public:
 	String getValue(uint8_t type);
 
 	void handle(HAPAccessorySet* accessorySet, bool forced=false);
-
+	void handleEvents(int eventCode, struct HAPEvent eventParam);
 private:
 
 	HAPService *service;	

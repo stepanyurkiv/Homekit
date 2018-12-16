@@ -8,10 +8,11 @@
 
 #include "HAPPluginInfluxDB.hpp"
 #include "HAPHelper.hpp"
+#include "HAPLogger.hpp"
 #include "HAPCharacteristics.hpp"
 
-#define HAP_PLUGIN_INTERVAL 		30000
-#define HAP_INFLUXDB_TIMEOUT 		2000
+#define HAP_PLUGIN_INTERVAL 		30000	// 30 sec
+#define HAP_INFLUXDB_TIMEOUT 		10000	// 10 sec
 
 #ifndef HAP_ARDUINOJSON_BUFFER_SIZE
 #define HAP_ARDUINOJSON_BUFFER_SIZE 2048
@@ -19,12 +20,12 @@
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       0
-#define VERSION_REVISION    3
-#define VERSION_BUILD       0
+#define VERSION_REVISION    1
+#define VERSION_BUILD       1
 
 
 
-const char *INFLUXDB_HOST = "192.168.178.120";
+const char *INFLUXDB_HOST = "192.168.178.137";
 const uint16_t INFLUXDB_PORT = 8086;
 
 const char *DATABASE = "homekit";
@@ -39,18 +40,29 @@ HAPPluginInfluxDB::HAPPluginInfluxDB() {
 	
 	_type = HAP_PLUGIN_TYPE_STORAGE;
 	_name = "HAPPluginInfluxDB";
-	_isEnabled = false;
+	_isEnabled = true;
 	_interval = HAP_PLUGIN_INTERVAL;
 	_previousMillis = 0;	
 	_openedDb = false;
 	_influxdb = new Influxdb(INFLUXDB_HOST, INFLUXDB_PORT);	
 
-
-
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
+
+	_eventManager		= nullptr;
+}
+
+HAPAccessory* HAPPluginInfluxDB::init(EventManager* eventManager){
+	listenerMemberFunctionPlugin.mObj = this;
+	listenerMemberFunctionPlugin.mf = &HAPPlugin::handleEvents;
+	
+	// Add listener to event manager
+	_eventManager = eventManager;
+	_eventManager->addListener( EventManager::kEventEvent, &listenerMemberFunctionPlugin );
+	
+	return nullptr;
 }
 
 bool HAPPluginInfluxDB::openDB(){	
@@ -60,7 +72,7 @@ bool HAPPluginInfluxDB::openDB(){
 	if (isOnline)
 		LogD("OK - Online", true);
 	else
-		LogD("ERROR - Offline", true);
+		LogD("ERROR - Influx server is offline or not responding", true);
 	
 	_openedDb = true;
 	if (isOnline) {
@@ -126,6 +138,14 @@ void HAPPluginInfluxDB::handle(HAPAccessorySet* accessorySet, bool forced){
 	}
 }
 
+
+
+void HAPPluginInfluxDB::handleEvents(int eventCode, struct HAPEvent eventParam){
+	LogE("<<< Handle plugin event: " + String(__PRETTY_FUNCTION__), false);
+	LogE(" code: " + String(eventCode) + " - value: ", false);
+	LogE(eventParam.value, true);
+}
+
 void HAPPluginInfluxDB::handleService(JsonObject& service){
 	
 	JsonArray& chrs = service["characteristics"];
@@ -154,8 +174,10 @@ void HAPPluginInfluxDB::handleService(JsonObject& service){
 
     	row.setMeasurement(sName);
     	
+    	LogD(">>> " + sName, false);
+    	LogD(": " + row.postString(), true);
     	bool result = _influxdb->write(row) == DB_SUCCESS;
-    	//LogD( result ? "OK" : "[ERROR] Updating failed", true);
+    	LogD( result ? "OK" : "[ERROR] Updating failed", true);
 
 		// Empty field object.
 		row.empty();

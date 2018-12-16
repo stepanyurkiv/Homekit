@@ -15,7 +15,7 @@
 HAPPluginLED::HAPPluginLED(){
     _type = HAP_PLUGIN_TYPE_ACCESSORY;
     _name = "HAPPluginLED";
-    _isEnabled = false;
+    _isEnabled = true;
     _interval = HAP_BLINK_INTERVAL;
     _previousMillis = 0;
     _isOn = true;
@@ -46,6 +46,10 @@ void changeBrightness(int oldValue, int newValue){
 }
 
 
+void HAPPluginLED::handleEvents(int eventCode, struct HAPEvent eventParam){
+	LogE("!!!!!!!!!!! HANDLE PLUGIN EVENT !!!!!!!!!!!!!!!", true);
+}
+
 void HAPPluginLED::handle(HAPAccessorySet* accessorySet, bool forced){
 
     if (shouldHandle() || forced) {
@@ -67,7 +71,7 @@ void HAPPluginLED::handle(HAPAccessorySet* accessorySet, bool forced){
     }
 }
 
-HAPAccessory* HAPPluginLED::init(){
+HAPAccessory* HAPPluginLED::init(EventManager* eventManager){
 	LogD("\nInitializing plugin: HAPPluginLED ...", false);
 
     pinMode(BUILTIN_LED, OUTPUT);    

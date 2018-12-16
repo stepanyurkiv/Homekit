@@ -4,12 +4,92 @@
 		"selected_items":
 		[
 			[
-				"send",
-				"sendEncrypt"
+				"err",
+				"errorOccured"
+			],
+			[
+				"out",
+				"outSize"
 			],
 			[
 				"HAP_",
-				"HAP_TIME_FORMAT"
+				"HAP_PAIRINGS_MAX"
+			],
+			[
+				"is",
+				"_isPaired"
+			],
+			[
+				"HAP",
+				"HAPPairing"
+			],
+			[
+				"_pair",
+				"_pairings"
+			],
+			[
+				"HAPPa",
+				"HAPPairing"
+			],
+			[
+				"uint",
+				"uint8_t"
+			],
+			[
+				"siez",
+				"size_t"
+			],
+			[
+				"_",
+				"_preferences"
+			],
+			[
+				"chara",
+				"characteristics"
+			],
+			[
+				"EVENT",
+				"EVENT_200"
+			],
+			[
+				"process",
+				"processIncomingEncryptedRequest"
+			],
+			[
+				"size",
+				"sizeof"
+			],
+			[
+				"de",
+				"decryptKey"
+			],
+			[
+				"ver",
+				"verifyAndDecrypt"
+			],
+			[
+				"dec",
+				"decryptCount"
+			],
+			[
+				"body",
+				"bodyData"
+			],
+			[
+				"padd",
+				"paddedLength"
+			],
+			[
+				"si",
+				"size_t"
+			],
+			[
+				"ic",
+				"include"
+			],
+			[
+				"send",
+				"sendEncrypt"
 			],
 			[
 				"time",
@@ -26,10 +106,6 @@
 			[
 				"DB",
 				"DB_SUCCESS"
-			],
-			[
-				"HAP",
-				"HAP_INTERVAL"
 			],
 			[
 				"access",
@@ -74,10 +150,6 @@
 			[
 				"sub",
 				"subTlv"
-			],
-			[
-				"err",
-				"error_code"
 			],
 			[
 				"charctr",
@@ -128,16 +200,8 @@
 				"updateServiceTxt"
 			],
 			[
-				"is",
-				"isPaired"
-			],
-			[
 				"_c",
 				"_categoryIndicator"
-			],
-			[
-				"uint",
-				"uint8_t"
 			],
 			[
 				"gen",
@@ -168,20 +232,12 @@
 				"hapClient"
 			],
 			[
-				"size",
-				"sizeof"
-			],
-			[
 				"buffer",
 				"bufferSize"
 			],
 			[
 				"uni",
 				"uint8_t"
-			],
-			[
-				"ver",
-				"verified"
 			],
 			[
 				"TLV",
@@ -194,10 +250,6 @@
 			[
 				"uit",
 				"uint8_t"
-			],
-			[
-				"_",
-				"_rawBody"
 			],
 			[
 				"raw",
@@ -335,6 +387,141 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "main/HAP/HAPVerifyContext.hpp",
+			"settings":
+			{
+				"buffer_size": 1910,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/HAPClient.hpp",
+			"settings":
+			{
+				"buffer_size": 1235,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/HAPClient.cpp",
+			"settings":
+			{
+				"buffer_size": 1965,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/HAPCharacteristics.cpp",
+			"settings":
+			{
+				"buffer_size": 7002,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/plugins/HAPPluginSwitch.cpp",
+			"settings":
+			{
+				"buffer_size": 2901,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/openlayers/4.6.4/ol.css\" type=\"text/css\">\n    <style>\n      .map {\n        height: 400px;\n        width: 100%;\n      }\n    </style>\n    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/openlayers/4.6.4/ol.js\"></script>\n    <title>OpenLayers example</title>\n  </head>\n  <body>\n    <h2>My Map</h2>\n    <div id=\"map\" class=\"map\"></div>\n    <script type=\"text/javascript\">\n      var map = new ol.Map({\n        target: 'map',\n        layers: [\n          new ol.layer.Tile({\n            source: new ol.source.OSM()\n          })\n        ],\n        view: new ol.View({\n          center: ol.proj.fromLonLat([37.41, 8.82]),\n          zoom: 5\n        })\n      });\n      \n      var lonlat = ol.proj.fromLonLat([33.8, 8.4]);\n      var location2 = ol.proj.fromLonLat([43.5, 18.0]);\n      \n      var linie2style = [\n\t\t\t\t// linestring\n\t\t\t\tnew ol.style.Style({\n\t\t\t\t  stroke: new ol.style.Stroke({\n\t\t\t\t\tcolor: '#d12710',\n\t\t\t\t\twidth: 2\n\t\t\t\t  })\n\t\t\t\t})\n\t\t\t  ];\n\t\t\t  \t\t\t\n\t\tvar linie2 = new ol.layer.Vector({\n\t\t\t\tsource: new ol.source.Vector({\n\t\t\t\tfeatures: [new ol.Feature({\n\t\t\t\t\tgeometry: new ol.geom.LineString([lonlat, location2]),\n\t\t\t\t\tname: 'Line',\n\t\t\t\t})]\n\t\t\t})\n\t\t});\n\t\t\t\n\t\t\tlinie2.setStyle(linie2style);\n\t\t\tmap.addLayer(linie2);\n      \n    </script>\n  </body>\n</html>",
+			"file": "/Users/michael/Desktop/Pyramide/map.html",
+			"file_size": 1378,
+			"file_write_time": 131785757354121761,
+			"settings":
+			{
+				"buffer_size": 1370,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/plugins/HAPPluginDHT.cpp",
+			"settings":
+			{
+				"buffer_size": 3795,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/plugins/HAPPluginDHT.hpp",
+			"settings":
+			{
+				"buffer_size": 711,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/plugins/Plugins.hpp",
+			"settings":
+			{
+				"buffer_size": 328,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/HAPEncryption.hpp",
+			"settings":
+			{
+				"buffer_size": 1723,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/HAPEncryption.cpp",
+			"settings":
+			{
+				"buffer_size": 9502,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/plugins/HAPPluginSwitch.hpp",
+			"settings":
+			{
+				"buffer_size": 736,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/HAPHelper.hpp",
+			"settings":
+			{
+				"buffer_size": 1259,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/HAPTLV8.hpp",
+			"settings":
+			{
+				"buffer_size": 2204,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main/HAP/HAPTLV8.cpp",
+			"settings":
+			{
+				"buffer_size": 12076,
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -344,9 +531,25 @@
 	"command_palette":
 	{
 		"height": 357.0,
-		"last_filter": "ind",
+		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"mark",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"md",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"inden",
+				"Indent JSON"
+			],
+			[
+				"pack",
+				"Package Control: Install Package"
+			],
 			[
 				"ind",
 				"Indent JSON"
@@ -487,33 +690,60 @@
 	],
 	"file_history":
 	[
-		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginSwitch.cpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessory.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessory.cpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessorySet.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessorySet.cpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPCharacteristics.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPGlobals.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPVersion.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPWiFiHelper.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPairings.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPRequest.cpp",
+		"/Users/michael/Development/workspace/Homekit/README.md",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPairings.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPServer.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPDeviceID.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessorySet.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPServer.cpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPDeviceID.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPGlobals.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPHelper.cpp",
+		"/Users/michael/Development/workspace/Homekit/components/arduino/libraries/WiFi/src/WiFiClient.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessorySet.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPairSetup.hpp",
+		"/Users/michael/Development/workspace/Homekit/default.csv",
+		"/Users/michael/Development/workspace/Homekit/.gitmodules",
 		"/Users/michael/Development/workspace/Homekit/.git/COMMIT_EDITMSG",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPEncryption.hpp",
+		"/Users/michael/Development/workspace/Homekit/sample-config.json",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPHelper.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPLogger.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPlugins.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginSwitch.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginLED.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginInfluxDB.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginDHT.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPVersion.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPEncryption.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessory.cpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPAccessory.hpp",
+		"/Users/michael/Development/workspace/Homekit/Makefile",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPVerifyContext.hpp",
+		"/Users/michael/Development/workspace/Homekit/utils/encryptionTester/nonce.py",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPClient.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPClient.cpp",
+		"/Users/michael/Development/workspace/Homekit/.gitignore",
+		"/Users/michael/Development/workspace/Homekit/main/Crypto/chacha20_poly1305.c",
+		"/Users/michael/Development/workspace/Homekit/components/libsodium/libsodium/src/libsodium/Makefile.am",
+		"/Users/michael/Development/workspace/Homekit/components/libsodium/component.mk",
+		"/usr/local/lib/node_modules/hap-client-tool/node_modules/hap-client/dist/lib/encryption.js",
+		"/Users/michael/Development/workspace/Homekit/utils/hap-client/src/lib/encryption.js",
+		"/Users/michael/Development/workspace/Homekit/components/wolfssl/INSTALL",
+		"/Users/michael/Development/workspace/Homekit/main/WiFiCredentials.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPCharacteristics.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPDeviceID.hpp",
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPDeviceID.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPCharacteristics.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPService.cpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginDHT.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/Plugins.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginInfluxDB.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginSwitch.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/component.mk",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPLogger.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPLogger.hpp",
 		"/Users/michael/Development/workspace/Homekit/components/NTPClient/component.mk",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPSNTPClient.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPSNTPClient.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPClient.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/main.cpp",
 		"/Users/michael/Development/workspace/Homekit/docs/example-pairingEveApp.md",
 		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/bf28fd2a-d9f3-48c7-9f19-e1ebdadd45cf/home/pi/docker/happython/Dockerfile",
@@ -521,14 +751,10 @@
 		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/HAPPreferences.hpp",
 		"/Users/michael/Development/workspace/Homekit/components/EventManager/EventManager/EventManager.h",
 		"/Users/michael/Development/workspace/Homekit/components/EventManager/EventManager/EventManager.cpp",
-		"/Users/michael/Development/workspace/Homekit/main/Crypto/chacha20_poly1305.c",
 		"/private/var/folders/7h/ksk6stmn4vb72qdmt_l2lg640000gn/T/13c20aa3-babe-42ff-b531-d2973dc0a093/home/pi/docker/homebridge-michael/Dockerfile.debian",
-		"/Users/michael/Development/workspace/Homekit/sample-config.json",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/HAPPluginInfluxDB.hpp",
 		"/Users/michael/Development/workspace/Homekit/components/ESP_influxdb/ESPinfluxdb.cpp",
 		"/Users/michael/Development/workspace/Homekit/components/ESP_influxdb/ESPinfluxdb.h",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPlugins.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPHelper.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginLED.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/HAPPluginInfluxDB.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/plugins/HAPPluginDHT.hpp",
@@ -564,15 +790,9 @@
 		"/Users/michael/Development/workspace/Homekit/utils/QRCode/setupHash.py",
 		"/Users/michael/Development/Arduino/hardware/espressif/esp32/libraries/SimpleBLE/src/SimpleBLE.h",
 		"/Users/michael/Development/Arduino/hardware/espressif/esp32/libraries/SimpleBLE/src/SimpleBLE.cpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPVerifyContext.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPairSetup.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPWiFiHelper.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPRequest.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/PluginDHT.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPClient.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/Plugins/Plugins.hpp",
-		"/Users/michael/Development/workspace/Homekit/Makefile",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPHelper.cpp",
 		"/Users/michael/Development/workspace/Homekit/utils/QRCode/bitmap.c",
 		"/Users/michael/Development/workspace/Homekit/utils/QRCode/bitmap2.c",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/concat.h",
@@ -580,8 +800,6 @@
 		"/Users/michael/Development/workspace/Homekit/main/HAP/base36.c",
 		"/Users/michael/Development/workspace/Homekit-self SRP/main/Crypto/SRP.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPBonjour.cpp",
-		"/Users/michael/Development/workspace/Homekit/README.md",
-		"/Users/michael/Development/workspace/Homekit/main/WiFiCredentials.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPCategories.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPServices.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPServices.cpp",
@@ -594,31 +812,16 @@
 		"/Users/michael/Development/workspace/Homekit/main/Crypto/hkdf.h",
 		"/Users/michael/Development/workspace/Homekit-self SRP/README.rst",
 		"/Users/michael/Development/workspace/Homekit/main/Crypto/ed25519.c",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPairings.cpp",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPPairings.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPTLV8.hpp",
 		"/Users/michael/Development/workspace/Homekit/main/HAP/concat.c",
 		"/Users/michael/Development/workspace/esp32-homekit/src/pair_setup.c",
 		"/Users/michael/Development/workspace/esp32-homekit/examples/switch/main/main.c",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPRequest.cpp",
 		"/Users/michael/Development/workspace/Homekit/main/Crypto/srp.c",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPUpdate.cpp",
-		"/Users/michael/Development/workspace/Homekit/main/Crypto/m_hkdf.c",
-		"/Users/michael/Development/workspace/Homekit/main/Crypto/hkdf.c",
-		"/Users/michael/Development/workspace/Homekit/main/Crypto/m_hkdf.h",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPUpdate.hpp",
-		"/Users/michael/Development/workspace/Homekit/main/Crypto/hkdf.c.bak.c",
-		"/Users/michael/Development/workspace/Homekit/sdkconfig",
-		"/Users/michael/Development/workspace/Homekit/utils/update_server/webserver.py",
-		"/Users/michael/Development/workspace/Homekit/README.rst",
-		"/Users/michael/Development/workspace/Homekit/build.sh",
-		"/Users/michael/Development/workspace/esp32-homekit/sdkconfig",
-		"/Users/michael/Development/workspace/ESP32Homekit/main/component.mk",
-		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPWiFiHelper.hpp"
+		"/Users/michael/Development/workspace/Homekit/main/HAP/HAPUpdate.cpp"
 	],
 	"find":
 	{
-		"height": 48.0
+		"height": 23.0
 	},
 	"find_in_files":
 	{
@@ -632,20 +835,144 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"::handleE",
-			"::handle",
-			"::handleev",
+			"WIFI_MODE_STA",
+			"sendenc",
+			"sendec",
+			"\".local",
+			"verifyContext",
+			"uint8_t*",
+			"TODO NOW",
+			"encrypted_tlv_len",
+			"encrypted_tlv",
+			"HAP_TLV_TYPE_ENCRYPTED_DATA",
+			"// TODO NOW",
+			"encrypted_tlv_len",
+			"free(enc",
+			"outsize",
+			"getVal",
+			"_pairSetup->srp",
+			"_pairSetup->srp_srp",
+			"_pairSetup->srp",
+			"srp_",
+			"srp_cl",
+			"int16_t",
+			"getValue",
+			"getValueForCharacteristics",
+			"delete",
+			"free(tlv8Data",
+			"TODO Now",
+			"handlePairSEtupM1",
+			"->clear",
+			"byte",
+			"toHex",
+			"event",
+			"to",
+			"flus",
+			"[WARNING] No client available to send the event to!",
 			"sendEncrypt",
-			"FreeHeap()",
-			"Heap()",
-			"::handle"
+			"handleEvent",
+			"event",
+			"::begin",
+			"::beg",
+			"pairsetupm1",
+			"gener",
+			"_accessorySet->isP",
+			"_longtermconte",
+			"ed25519_sign",
+			"wc_ed25519_import_private_key",
+			"longtermC",
+			"verifyM1",
+			"AAD_",
+			"todo",
+			"save",
+			"VerifyM3",
+			"verifyM3",
+			"verify",
+			"store",
+			"save",
+			"_pairSetup",
+			"pairSEtup",
+			"_pairSetup->k",
+			"_pairSetup",
+			"longT",
+			"longt",
+			"longtermContext",
+			"longtermContext.",
+			"longterm",
+			"_pairSetup->ke",
+			"deviceid ltpk",
+			"Get iOS DeviceID LTPK:",
+			"_pairSetup->keys.",
+			"verifyContext->accessoryLTPK",
+			"_pairSetup->keys.publicKey",
+			"LTPK",
+			"_pairSetup->keys.publicKey",
+			"save ",
+			"_pairings",
+			"_pairings->",
+			"_pairings",
+			"::handleE",
+			"handleev",
+			"Verifying ED25519",
+			"::begin",
+			"hapClient.state = CLIENT_STATE_DISCONNECTED",
+			"connected",
+			"::handleC",
+			"::getC",
+			"Attemp",
+			"[WARNING] Attempt to verify unpaired accessory!",
+			"::handleE",
+			"getVal",
+			"getva",
+			"getchara",
+			"ENABLED",
+			"ENDABLED",
+			"containsNe",
+			"encrypt",
+			"encrypt(",
+			"_pairSetup",
+			"->decryptKey",
+			"Context->decry",
+			"_pairSetup->decry",
+			"// todo",
+			"_pairSetup->decryptKey",
+			"_pairings",
+			"16 ",
+			"16]",
+			"16",
+			"32",
+			"16",
+			"encrypt(",
+			"encrypt",
+			"encrypt(",
+			"->decryptK",
+			"->decrypt",
+			"decryptC",
+			"_verifyC",
+			"_verify",
+			"_verifyC",
+			"decryptCount",
+			"processIncomingEncryptedRequest",
+			"decryp",
+			"verifya",
+			"veri",
+			"::e",
+			"handleCharacteristicsPut",
+			"function",
+			"/*",
+			"::begin",
+			"sodi",
+			"::com"
 		],
 		"highlight": true,
 		"in_selection": false,
 		"preserve_case": false,
-		"regex": true,
+		"regex": false,
 		"replace_history":
 		[
+			"_srp",
+			"longTermContext",
+			"longtermContext->"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -656,14 +983,450 @@
 	"groups":
 	[
 		{
+			"selected": 5,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "main/HAP/HAPVerifyContext.hpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1910,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								730,
+								730
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "main/HAP/HAPClient.hpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1235,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								836,
+								836
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 824.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "main/HAP/HAPClient.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1965,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								268,
+								281
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "main/HAP/HAPCharacteristics.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7002,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								423,
+								423
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 14,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "main/HAP/plugins/HAPPluginSwitch.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2901,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2139,
+								2139
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 945.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/Users/michael/Desktop/Pyramide/map.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1370,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1269,
+								1067
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "main/HAP/plugins/HAPPluginDHT.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3795,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								523,
+								523
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 382.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "main/HAP/plugins/HAPPluginDHT.hpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 711,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 5.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "main/HAP/plugins/Plugins.hpp",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 328,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "main/HAP/HAPEncryption.hpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1723,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								875,
+								878
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 22.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "main/HAP/HAPEncryption.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9502,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								196,
+								196
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "main/HAP/plugins/HAPPluginSwitch.hpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 736,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								652,
+								652
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 13,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "main/HAP/HAPHelper.hpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1259,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								416,
+								444
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "main/HAP/HAPTLV8.hpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2204,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1179,
+								1179
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "main/HAP/HAPTLV8.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 12076,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1989,
+								1194
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++11/C++11.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1398.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 48.0
+		"height": 23.0
 	},
 	"input":
 	{
@@ -700,7 +1463,7 @@
 	"project": "Homekit.sublime-project",
 	"replace":
 	{
-		"height": 40.0
+		"height": 42.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -709,6 +1472,10 @@
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"insta",
+				"components/wolfssl/INSTALL"
+			],
 			[
 				"t",
 				"Frame 1409: 544 bytes on wire (4352 bits), 544 byt"

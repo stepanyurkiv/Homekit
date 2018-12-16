@@ -18,6 +18,7 @@
 
 #include <ArduinoJson.h>
 
+
 #include "HAPGlobals.hpp"
 #include "HAPClient.hpp"
 #include "HAPAccessorySet.hpp"
@@ -33,6 +34,8 @@
 #include "Plugins/Plugins.hpp"
 
 #include "EventManager.h"
+
+#include "HAPWebServer.hpp"
 
 #define Homekit_setFirmware(name, version) const char* __FLAGGED_FW_NAME = "\xbf\x84\xe4\x13\x54" name "\x93\x44\x6b\xa7\x75"; const char* __FLAGGED_FW_VERSION = "\x6a\x3f\x3e\x0e\xe1" version "\xb0\x30\x48\xd4\x1a"; hap.__setFirmware(__FLAGGED_FW_NAME, __FLAGGED_FW_VERSION);
 #define Homekit_setBrand(brand) const char* __FLAGGED_BRAND = "\xfb\x2a\xf5\x68\xc0" brand "\x6e\x2f\x0f\xeb\x2d"; hap.__setBrand(__FLAGGED_BRAND);
@@ -120,6 +123,8 @@ public:
 protected:
 
 	// struct HAPPairSetup* _pairSetup;
+	HAPWebServer _webserver;
+
 
 	void* _srp;
 	struct HAPLongTermContext* _longTermContext;
@@ -140,8 +145,9 @@ protected:
 	unsigned long _previousMillis;
 
 	void handleEvents( int eventCode, struct HAPEvent eventParam );
+	// void handlePluginEvents( int eventCode, struct HAPEvent eventParam );
 
-    MemberFunctionCallable<HAPServer> listenerMemberFunction2;
+    MemberFunctionCallable<HAPServer> listenerMemberFunction2;	
 
 #if HAP_GENERATE_XHM	
 	QRCode _qrcode;
@@ -260,10 +266,8 @@ private:
 	static bool encode(HAPClient* hapClient);
 	
 
-	// String getValueForCharacteristics(int aid, int iid);
-	int32_t getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize);
-
-	characteristics* getCharacteristics(int aid, int iid);
+	// int32_t getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize);
+	// characteristics* getCharacteristics(int aid, int iid);
 
 
 	const char* __HOMEKIT_SIGNATURE;

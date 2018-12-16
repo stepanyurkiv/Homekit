@@ -67,6 +67,9 @@ public:
 	HAPAccessory* accessoryAtIndex(uint8_t index);
 	HAPAccessory* accessoryWithAID(uint8_t aid);
 
+	int32_t getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize);
+	characteristics* getCharacteristics(int aid, int iid);
+
 	uint8_t numberOfAccessory();
 
 protected:

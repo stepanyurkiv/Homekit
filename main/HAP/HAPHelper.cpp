@@ -184,3 +184,12 @@ bool HAPHelper::containsNestedKey(const JsonObject& obj, const char* key) {
 
 	return false;
 }
+
+
+String HAPHelper::printUnescaped(String str) {
+	String result;
+	result = str;
+	result.replace('\n', '\\ n\n');
+	result.replace('\r', '\\ r');
+	return result;
+}
