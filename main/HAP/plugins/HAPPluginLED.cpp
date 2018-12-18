@@ -52,64 +52,67 @@ void HAPPluginLED::handleEvents(int eventCode, struct HAPEvent eventParam){
 
 void HAPPluginLED::handle(HAPAccessorySet* accessorySet, bool forced){
 
-    if (shouldHandle() || forced) {
+    if (shouldHandle() || forced) {        
         
-        /*
-        LogW("Handle LED", true);
+        LogW(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Handle LED", true);
         if (_isOn)
             setValue("true", "false");
         else
             setValue("false", "true");
-        */
 
-        uint32_t freeMem = ESP.getFreeHeap();
+        // Add event
+        // addEvent(EventManager::kEventFromController, _accessory->aid, _powerState->iid, _powerState->value());
+		struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _powerState->iid, _powerState->value());							
+		_eventManager->queueEvent( EventManager::kEventFromController, event);
+
+        //uint32_t freeMem = ESP.getFreeHeap();
         //Serial.println(freeMem);
         
         float percentage = 100 / 2;
         //Serial.printf("%f\n", percentage);
-        brightnessState->setValue(String(percentage));
+        _brightnessState->setValue(String(percentage));
     }
 }
 
-HAPAccessory* HAPPluginLED::init(EventManager* eventManager){
+HAPAccessory* HAPPluginLED::initAccessory(){
 	LogD("\nInitializing plugin: HAPPluginLED ...", false);
 
     pinMode(BUILTIN_LED, OUTPUT);    
     digitalWrite(BUILTIN_LED, _isOn); 
 
-	HAPAccessory *accessory = new HAPAccessory();
-	HAPAccessory::addInfoServiceToAccessory(accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
+	_accessory = new HAPAccessory();
+	HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
 
-    service = new HAPService(serviceType_lightBulb);
-    accessory->addService(service);
+    _service = new HAPService(serviceType_lightBulb);
+    _accessory->addService(_service);
 
     stringCharacteristics *lightServiceName = new stringCharacteristics(charType_serviceName, permission_read, 32);
     lightServiceName->setValue("Light");
-    accessory->addCharacteristics(service, lightServiceName);
+    _accessory->addCharacteristics(_service, lightServiceName);
 
-    powerState = new boolCharacteristics(charType_on, permission_read|permission_write|permission_notify);
+    _powerState = new boolCharacteristics(charType_on, permission_read|permission_write|permission_notify);
     if (_isOn)
-        powerState->setValue("true");
+        _powerState->setValue("true");
     else
-        powerState->setValue("false");
-    powerState->valueChangeFunctionCall = &changeLightPower;
-    accessory->addCharacteristics(service, powerState);
+        _powerState->setValue("false");
+    _powerState->valueChangeFunctionCall = &changeLightPower;
+    _accessory->addCharacteristics(_service, _powerState);
 
     
-    brightnessState = new intCharacteristics(charType_brightness, permission_read|permission_write, 0, 100, 1, unit_percentage);
-    brightnessState->setValue("50");
-    brightnessState->valueChangeFunctionCall = &changeBrightness;
-    //accessory->addCharacteristics(service, brightnessState);    
+    _brightnessState = new intCharacteristics(charType_brightness, permission_read|permission_write, 0, 100, 1, unit_percentage);
+    _brightnessState->setValue("50");
+    _brightnessState->valueChangeFunctionCall = &changeBrightness;
+    //accessory->addCharacteristics(_service, _brightnessState);    
 
 	LogD("OK", true);
 
-	return accessory;
+	return _accessory;
 }
 
 
 void HAPPluginLED::setValue(String oldValue, String newValue){
     //LogW("Setting LED oldValue: " + oldValue + " -> newValue: " + newValue, true);
-    powerState->setValue(newValue);
+    _powerState->setValue(newValue);
 
     if (newValue == "true"){
         _isOn = true;
@@ -121,7 +124,7 @@ void HAPPluginLED::setValue(String oldValue, String newValue){
 void HAPPluginLED::setValue(uint8_t type, String oldValue, String newValue){
     //LogW("Setting LED oldValue: " + oldValue + " -> newValue: " + newValue, true);
     if (type == charType_on) {
-        powerState->setValue(newValue);
+        _powerState->setValue(newValue);
 
         if (newValue == "true"){
             _isOn = true;
@@ -129,21 +132,21 @@ void HAPPluginLED::setValue(uint8_t type, String oldValue, String newValue){
             _isOn = false;
         }    
     } else if (type == charType_brightness) {        
-        brightnessState->setValue(newValue);
+        _brightnessState->setValue(newValue);
     }
 
 }
 
 
 String HAPPluginLED::getValue(){
-    return powerState->value();
+    return _powerState->value();
 }
 
 String HAPPluginLED::getValue(uint8_t type){
     if (type == charType_on) {
-        return powerState->value();
+        return _powerState->value();
     } else if (type == charType_brightness) {
-        return brightnessState->value();
+        return _brightnessState->value();
     }
     return "";
 }

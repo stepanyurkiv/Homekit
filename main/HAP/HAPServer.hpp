@@ -125,7 +125,8 @@ protected:
 	// struct HAPPairSetup* _pairSetup;
 	HAPWebServer _webserver;
 
-
+	bool _stopEvents;
+	
 	void* _srp;
 	struct HAPLongTermContext* _longTermContext;
 
@@ -144,10 +145,15 @@ protected:
 	unsigned long _minimalPluginInterval;
 	unsigned long _previousMillis;
 
-	void handleEvents( int eventCode, struct HAPEvent eventParam );
-	// void handlePluginEvents( int eventCode, struct HAPEvent eventParam );
+#if HAP_DEBUG	
+	unsigned long _previousMillisHeap;
+#endif
 
-    MemberFunctionCallable<HAPServer> listenerMemberFunction2;	
+	void handleEvents( int eventCode, struct HAPEvent eventParam );
+	// void handleEventsOutgoing( int eventCode, struct HAPEvent eventParam );
+
+    MemberFunctionCallable<HAPServer> listenerMemberFunction2;
+	MemberFunctionCallable<HAPServer> listenerMemberFunction1;	
 
 #if HAP_GENERATE_XHM	
 	QRCode _qrcode;

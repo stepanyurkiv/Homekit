@@ -1,0 +1,133 @@
+{
+	"version": "2.0.0",
+	"presentation": {
+		"reveal": "always",
+		"panel": "dedicated",
+		"echo": true,
+		"focus": true
+	},
+	"options": {
+		"cwd": "${workspaceFolder}",
+		"env": {
+			"APP_NAME": "${workspaceFolderBasename}",
+			"IDF_PATH": "/Users/michael/esp/esp-idf",
+		}
+	},
+	"tasks": [
+		{
+			"label": "Build App",
+			"type": "shell",
+			"command": "make app -j8 ",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": {
+				"owner": "cpp",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}"
+				],
+				"pattern": {
+					"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"message": 5
+				}
+			}
+		},
+		{
+			"label": "Build All",
+			"type": "shell",
+			"command": "make all -j8 ",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": {
+				"owner": "cpp",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}"
+				],
+				"pattern": {
+					"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"message": 5
+				}
+			}
+		},
+		{
+			"label": "Flash",
+			"type": "shell",
+			"command": "make -j8 flash",
+			"problemMatcher": {
+				"owner": "cpp",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}"
+				],
+				"pattern": {
+					"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"message": 5
+				}
+			}
+		},
+		{
+			"label": "Build, Flash & Monitor",
+			"type": "shell",
+			"command": "make -j8 app flash monitor",
+			"problemMatcher": {
+				"owner": "cpp",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}"
+				],
+				"pattern": {
+					"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"message": 5
+				}
+			},
+			"group": "build"
+		},
+		{
+			"label": "Clean",
+			"type": "shell",
+			"command": "make clean ",
+			"problemMatcher": []
+		},
+		{
+			"label": "Monitor",
+			"type": "shell",
+			"command": "make -j8 monitor",
+			"problemMatcher": []
+		},
+		{
+			"taskName": "DumpELF",
+			"suppressTaskName": true,
+			"args": [
+				"xtensa-esp32-elf-objdump -x build/${projectname}.elf > ${projectname}ObjDump.txt"
+			]
+		},
+		{
+			"taskName": "Erase",
+			"suppressTaskName": true,
+			"args": [
+				"make erase_flash"
+			]
+		}
+	]
+}

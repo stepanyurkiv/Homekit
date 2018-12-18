@@ -77,14 +77,14 @@ String HAPPluginDHT::getValue(uint8_t type){
 	return "";
 }
 
-HAPAccessory* HAPPluginDHT::init(EventManager* eventManager){
+HAPAccessory* HAPPluginDHT::initAccessory(){
 	LogD("\nInitializing plugin: " + _name + " ...", false);
 
 	HAPAccessory *accessory = new HAPAccessory();
 	HAPAccessory::addInfoServiceToAccessory(accessory, "DHT 1", "ET", "DHT", "12345678", &identifyDHT, version() );
 
 
-	HAPService *tempService = new HAPService(serviceType_temperatureSensor);
+	tempService = new HAPService(serviceType_temperatureSensor);
 	accessory->addService(tempService);
 
 	stringCharacteristics *tempServiceName = new stringCharacteristics(charType_serviceName, permission_read, 0);
@@ -98,7 +98,7 @@ HAPAccessory* HAPPluginDHT::init(EventManager* eventManager){
 	tempValue->valueChangeFunctionCall = &changeTemp;
 	accessory->addCharacteristics(tempService, tempValue);
 
-	HAPService *humService = new HAPService(serviceType_humiditySensor);
+	humService = new HAPService(serviceType_humiditySensor);
 	accessory->addService(humService);
 
 	stringCharacteristics *humServiceName = new stringCharacteristics(charType_serviceName, permission_read, 0);

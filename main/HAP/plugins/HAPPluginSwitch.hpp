@@ -18,7 +18,7 @@ class HAPPluginSwitch: public HAPPlugin {
 public:
 
 	HAPPluginSwitch();
-	HAPAccessory* init(EventManager* eventManager = nullptr);
+	HAPAccessory* initAccessory();
 
 	void setValue(String oldValue, String newValue);
 	void setValue(uint8_t type, String oldValue, String newValue);

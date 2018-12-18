@@ -1,0 +1,31 @@
+{
+    "configurations": [
+        {
+            "name": "Homekit",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/main/**",
+                "${workspaceFolder}/main/HAP/**",
+                "/Users/michael/esp/esp-idf/components/**",
+                "/Users/michael/esp/xtensa-esp32-elf/**"
+            ],
+            "defines": [],
+            "macFrameworkPath": [
+                "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        },
+        {
+            "name": "Mac",
+            "includePath": [
+                "/Users/michael/Library/Arduino15/packages/esp8266/tools/**",
+                "/Users/michael/Library/Arduino15/packages/esp8266/hardware/esp8266/2.4.0/**"
+            ],
+            "forcedInclude": []
+        }
+    ],
+    "version": 4
+}

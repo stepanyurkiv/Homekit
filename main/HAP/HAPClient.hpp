@@ -63,6 +63,7 @@ public:
 	struct HAPEncryptionContext* 	encryptionContext;	
 
 	bool			isEncrypted;
+	bool			shouldNotify;
 
 	bool operator==(const HAPClient &hap);
 

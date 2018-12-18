@@ -14,13 +14,13 @@
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
 
-#define HAP_BLINK_INTERVAL 1000
+#define HAP_BLINK_INTERVAL 10000
 
 class HAPPluginLED: public HAPPlugin {
 public:
 
 	HAPPluginLED();
-	HAPAccessory* init(EventManager* eventManager = nullptr);
+	HAPAccessory* initAccessory();
 
 	void setValue(String oldValue, String newValue);
 	void setValue(uint8_t type, String oldValue, String newValue);
@@ -30,11 +30,14 @@ public:
 
 	void handle(HAPAccessorySet* accessorySet, bool forced=false);
 	void handleEvents(int eventCode, struct HAPEvent eventParam);
-private:
+private:	
+	HAPAccessory*			_accessory;
+	HAPService*				_service;	
+	boolCharacteristics* 	_powerState;
+	intCharacteristics*	 	_brightnessState;
 
-	HAPService *service;	
-	boolCharacteristics *powerState;
-	intCharacteristics *brightnessState;
+	// EventManager*	_eventManager;
+	// MemberFunctionCallable<HAPPlugin> listenerMemberFunctionPlugin;
 
 	bool _isOn;
 };

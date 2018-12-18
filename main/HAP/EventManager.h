@@ -191,7 +191,9 @@ public:
         kEventUser9,
 
         // Homekit specific
-        kEventEvent,
+        //kEventEvent,
+        kEventFromController,
+        kEventToController,
     };
 
 

@@ -19,8 +19,10 @@ typedef void (*identifyFunction)(bool oldValue, bool newValue);
 
 class HAPAccessory {
 public:
+
+    int aid;    
     uint8_t numberOfInstance = 0;
-    int aid;
+    
     std::vector<HAPService *>_services;
 
     void addService(HAPService *ser);   
@@ -36,6 +38,11 @@ public:
     String describe();
 
     static HAPService* addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunction identifyCallback, String firmwareRev = "");
+    
+
+
+private:
+    
 };
 
 

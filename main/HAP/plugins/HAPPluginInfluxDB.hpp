@@ -24,7 +24,7 @@ public:
 
 	HAPPluginInfluxDB();
 
-	HAPAccessory* init(EventManager* eventManager = nullptr);
+	HAPAccessory* initAccessory();
 	void setValue(String oldValue, String newValue) {};
     void setValue(uint8_t type, String oldValue, String newValue){};
 
@@ -32,7 +32,9 @@ public:
     String getValue(uint8_t type) { return ""; };
 
     void handle(HAPAccessorySet* accessorySet, bool forced = false); 
-	void handleEvents(int eventCode, struct HAPEvent eventParam);
+	// void handleEvents(int eventCode, struct HAPEvent eventParam);
+
+	void addEventListener(EventManager* eventManager);
 
 private:
 	Influxdb* _influxdb;

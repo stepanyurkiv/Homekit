@@ -54,15 +54,17 @@ HAPPluginInfluxDB::HAPPluginInfluxDB() {
 	_eventManager		= nullptr;
 }
 
-HAPAccessory* HAPPluginInfluxDB::init(EventManager* eventManager){
+HAPAccessory* HAPPluginInfluxDB::initAccessory(){
+	return nullptr;
+}
+
+void HAPPluginInfluxDB::addEventListener(EventManager* eventManager){
 	listenerMemberFunctionPlugin.mObj = this;
 	listenerMemberFunctionPlugin.mf = &HAPPlugin::handleEvents;
 	
 	// Add listener to event manager
 	_eventManager = eventManager;
-	_eventManager->addListener( EventManager::kEventEvent, &listenerMemberFunctionPlugin );
-	
-	return nullptr;
+	_eventManager->addListener( EventManager::kEventFromController, &listenerMemberFunctionPlugin );
 }
 
 bool HAPPluginInfluxDB::openDB(){	
@@ -140,11 +142,7 @@ void HAPPluginInfluxDB::handle(HAPAccessorySet* accessorySet, bool forced){
 
 
 
-void HAPPluginInfluxDB::handleEvents(int eventCode, struct HAPEvent eventParam){
-	LogE("<<< Handle plugin event: " + String(__PRETTY_FUNCTION__), false);
-	LogE(" code: " + String(eventCode) + " - value: ", false);
-	LogE(eventParam.value, true);
-}
+
 
 void HAPPluginInfluxDB::handleService(JsonObject& service){
 	
@@ -211,11 +209,11 @@ void HAPPluginInfluxDB::handleCharacteristic(JsonObject& chr, dbMeasurement* row
 	if ( format == "string" ) {
 
 	} else if ( format == "bool" ) {
-		row->addField("value", 	chr["value"].as<float>()); // Add value field
+		row->addField("value", 	chr["value"].as<bool>()); // Add value field
 	} else if ( format == "float" ) { 
 		row->addField("value", 	chr["value"].as<float>()); // Add value field
 	} else if ( format == "int" ) { 
-		row->addField("value", 	chr["value"].as<float>()); // Add value field
+		row->addField("value", 	chr["value"].as<int>()); // Add value field
 	} else {
 		row->addField("value", 	0.0); // Add value field
 	}
@@ -232,7 +230,7 @@ void HAPPluginInfluxDB::handleCharacteristic(JsonObject& chr, dbMeasurement* row
 	row.addField("random", random(100)); // Add random value
 
 	LogD(_influxdb->write(row) == DB_SUCCESS ? "OK" : "[ERROR] Updating failed", true);
-
+	
 	// Empty field object.
 	row.empty();
 	*/

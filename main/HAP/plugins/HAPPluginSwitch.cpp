@@ -58,7 +58,7 @@ void HAPPluginSwitch::handleEvents(int eventCode, struct HAPEvent eventParam){
 
 
 
-HAPAccessory* HAPPluginSwitch::init(EventManager* eventManager){
+HAPAccessory* HAPPluginSwitch::initAccessory(){
 	// LogD("\nInitializing plugin: HAPPluginSwitch ...", false);
 
 	HAPAccessory *accessory = new HAPAccessory();

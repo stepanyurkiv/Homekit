@@ -477,7 +477,6 @@ int EventManager::ListenerList::sendEvent( int eventCode, struct HAPEvent param 
     return handlerCount;
 }
 
-
 boolean EventManager::ListenerList::setDefaultListener( EventListener* listener )
 {
     EVTMGR_DEBUG_PRINT( "setDefaultListener() enter " )

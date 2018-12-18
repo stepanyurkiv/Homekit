@@ -55,13 +55,6 @@ void setup(){
 
 void loop(){
 
-	// Free Heap every interval ms
-	if ( millis() - previousMillis >= interval) {
-	    // save the last time you blinked the LED
-	    previousMillis = millis();
-	    Heap();
-	}
-
 	hap.handle();
 
 }

@@ -36,14 +36,20 @@ class HAPPlugin {
 
 public:
 	//virtual void doSomething() = 0;
-	virtual HAPAccessory* init(EventManager* eventManager = nullptr) = 0;
+	//virtual HAPPlugin() = 0;
+	virtual HAPAccessory* initAccessory() = 0;
 	virtual void setValue(String oldValue, String newValue) = 0;
 	virtual void setValue(uint8_t type, String oldValue, String newValue) = 0;
 
 	virtual String getValue() = 0;
 
 	virtual void handle(HAPAccessorySet* accessorySet, bool forced = false) = 0;
-	virtual void handleEvents(int eventCode, struct HAPEvent eventParam) = 0;
+	virtual void handleEvents(int eventCode, struct HAPEvent eventParam){};	
+	
+	// inline void addEvent(int eventCode, int aid, int iid, String value){
+	// 	struct HAPEvent event = HAPEvent(nullptr, aid, iid, value);							
+	// 	_eventManager->queueEvent( eventCode, event);
+	// }
 
 	inline enum HAP_PLUGIN_TYPE type(){
 		return _type;
@@ -91,6 +97,14 @@ public:
 		return 0;
 	}
 
+	inline void addEventListener(EventManager* eventManager){
+		listenerMemberFunctionPlugin.mObj = this;
+		listenerMemberFunctionPlugin.mf = &HAPPlugin::handleEvents;
+	
+		// Add listener to event manager
+		_eventManager = eventManager;
+		_eventManager->addListener( EventManager::kEventFromController, &listenerMemberFunctionPlugin );
+	}
 
 protected:
 	enum HAP_PLUGIN_TYPE _type;
@@ -103,7 +117,6 @@ protected:
 	HAPVersion 		_version;
 
 	EventManager*	_eventManager;
-
 	MemberFunctionCallable<HAPPlugin> listenerMemberFunctionPlugin;
 };
 
