@@ -706,7 +706,7 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
     // <16:    authTag according to AEAD algorithm>
     // 
 
-	_stopEvents = true;
+	
 	String bodyData = "";
 
 	while ( hapClient->client.available() )	{
@@ -778,7 +778,7 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 		handlePath(hapClient, bodyData);		
 	}
 	
-	_stopEvents = false;
+	
 	return;
 
 
@@ -840,6 +840,20 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 
 	
 
+}
+
+bool HAPServer::stopEvents(){
+	return _stopEvents;
+}
+
+void HAPServer::stopEvents(bool value) {
+	
+	if (value) {
+		LogD("--- Stopping Events", true);
+	} else {
+		LogD("--- Starting Events", true);
+	}
+	_stopEvents = value;
 }
 
 bool HAPServer::handlePath(HAPClient* hapClient, String bodyData){
@@ -1066,7 +1080,7 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 							LogE( F("ERROR: Pair-setup failed at M1!"), true);
 							hapClient->state = CLIENT_STATE_DISCONNECTED;
 							
-							_stopEvents = false;
+							stopEvents(false);
 						}
 					}
 
@@ -1076,7 +1090,7 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 							LogE( F("ERROR: Pair-setup failed at M3!"), true);
 							hapClient->state = CLIENT_STATE_DISCONNECTED;
 
-							_stopEvents = false;
+							stopEvents(false);
 						}
 					}
 
@@ -1086,7 +1100,7 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 							LogE( F("ERROR: Pair-setup failed at M5!"), true);
 							hapClient->state = CLIENT_STATE_DISCONNECTED;
 
-							_stopEvents = false;
+							stopEvents(false);
 						}
 					}
 
@@ -1096,7 +1110,7 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 							LogE( F("ERROR: Pair-verify failed at M1!"), true);
 							hapClient->state = CLIENT_STATE_DISCONNECTED;
 
-							_stopEvents = false;
+							stopEvents(false);
 						}
 					}
 
@@ -1106,7 +1120,7 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 							LogE( F("ERROR: Pair-verify failed at M3!"), true);
 							hapClient->state = CLIENT_STATE_DISCONNECTED;
 
-							_stopEvents = false;
+							stopEvents(false);
 						}
 					}
 				}
@@ -1122,9 +1136,6 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 	} else if ( (char) b != '\r') {  	// if you got anything else but a carriage return character,		
 		_curLine += (char) b;      		// add it to the end of the currentLine
 	}
-
-	// Starting events
-	_stopEvents = false;
 }
 
 
@@ -1311,7 +1322,7 @@ bool HAPServer::encode(HAPClient* hapClient){
 //			}
 		}
 		else {
-			LogW( F("WARNING: Unsupported TLV data! Skipping ..."), true );
+			LogW( F("[WARNING] Unsupported TLV data! Skipping ..."), true );
 			hapClient->client.read();
 			//			hapClient->client.read();
 			//			hapClient->client.read();
@@ -1630,7 +1641,7 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 1/4 ...", false);	
 
-	_stopEvents = true;
+	stopEvents(true);
 
 	TLV8 response;
 
@@ -2113,7 +2124,7 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	LogV("OK", true);
 	LogI(">>> Pairing with client [" + hapClient->client.remoteIP().toString() + "] complete!", true);
 
-	_stopEvents = false;
+	stopEvents(false);
     return true;
 }
 
@@ -2121,7 +2132,7 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-verify Step 1/2 ...", false);
 
-	_stopEvents = true;
+	stopEvents(false);
 	int err_code = 0;
 	TLV8 response;
 
@@ -2525,7 +2536,7 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 	LogV("OK", true);
 	LogI(">>> Verification with client [" + hapClient->client.remoteIP().toString() + "] complete!", true);
 	
-	_stopEvents = false;
+	stopEvents(false);
 	return true;
 }
 
@@ -2719,7 +2730,8 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 
 					hapClient->shouldNotify = chr["ev"].as<bool>();
 					struct HAPEvent event = HAPEvent(hapClient, aid, iid, chr["ev"].as<String>());					
-
+					
+					hapClient->subscribe(aid, iid, chr["ev"].as<bool>());
 #if 0
 					LogD("HAPCLIENT IP: " + hapClient->client.remoteIP().toString(), true);
 					LogD("EVENT IP:     " + event.hapClient->client.remoteIP().toString(), true);
@@ -2804,7 +2816,7 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 {
 
 	// Stopping events
-	if (_stopEvents == true) {
+	if (stopEvents() == true) {
 		return;
 	}
 
@@ -2822,80 +2834,102 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 			Serial.println("value: " + String(eventParam.value));
 #endif
 
-			const size_t bufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(3);
-			DynamicJsonBuffer jsonBuffer(bufferSize);
-
-			JsonObject& root = jsonBuffer.createObject();
-
-			JsonArray& characteristics = root.createNestedArray("characteristics");
-
-			JsonObject& characteristics_0 = characteristics.createNestedObject();
-			characteristics_0["aid"] = eventParam.aid;
-			characteristics_0["iid"] = eventParam.iid;
-
-
-			// String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);        	
-
-			size_t outSize = 0;
-			int32_t errorCode = 0;
-
-			errorCode = _accessorySet->getValueForCharacteristics(eventParam.aid, eventParam.iid, NULL, &outSize);
-
-#if HAP_DEBUG
-			LogD( "errorCode: " + String(errorCode), true );
-			//LogD( "outSize: " + String(outSize), true );
-#endif
-
-			if ( errorCode != 0){
-				// TODO:
-				characteristics_0["status"] = errorCode;
-			} else {
-
-				// outSize = outSize + 1;
-				char value[outSize];
-				_accessorySet->getValueForCharacteristics(eventParam.aid, eventParam.iid, value, &outSize);
-
-
-#if HAP_DEBUG
-				LogD( "value: " + String(value), true );
-#endif
-
-
-				if ( strcmp(value, "true") == 0 ) {
-					characteristics_0["value"] = true;
-				} else if ( strcmp(value, "false") == 0 ) {
-					characteristics_0["value"] = false;
-				} else {
-					characteristics_0["value"] = value;	
-				}
-			}
-			
-			root.printTo(response);
-
-#if HAP_DEBUG
-			root.prettyPrintTo(Serial);
-			Serial.println();
-#endif
+			response = buildEventResponse(eventParam.aid, eventParam.iid);
 		}
 
-		if (eventParam.hapClient == nullptr) {
+		//if (eventParam.hapClient == nullptr) {
 			// TODO:
 			// Send to all clients
-			eventParam.hapClient = &_clients.back();
+			// eventParam.hapClient = &_clients.back();
+
+		for (auto& hapClient : _clients) {
+				
+			if (hapClient.isSubscribed(eventParam.aid, eventParam.iid)) {
+				sendEvent(&hapClient, response);
+			}
 		}
 
+		//} else {
+			//sendEvent(eventParam.hapClient, response);
+		//}
 
-		LogV("Sending EVENT to client [" + eventParam.hapClient->client.remoteIP().toString() + "] ...", true);
-		if ( eventParam.hapClient->client.connected() ){				
-			sendEncrypt(eventParam.hapClient, EVENT_200, response, false);	
-		} else {
-			LogW("[WARNING] No client available to send the event to!", true);
-		}
+		
+
 	} else {
-		LogD("[DBEUG] No clients connected to send an event", true);
+		LogD("[DEBUG] No clients connected to send an event", true);
 	}
 
 };
+
+String HAPServer::buildEventResponse(int aid, int iid){
+	String response;
+	const size_t bufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(3);
+	DynamicJsonBuffer jsonBuffer(bufferSize);
+
+	JsonObject& root = jsonBuffer.createObject();
+
+	JsonArray& characteristics = root.createNestedArray("characteristics");
+
+	JsonObject& characteristics_0 = characteristics.createNestedObject();
+	characteristics_0["aid"] = aid;
+	characteristics_0["iid"] = iid;
+
+
+	// String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);        	
+
+	size_t outSize = 0;
+	int32_t errorCode = 0;
+
+	errorCode = _accessorySet->getValueForCharacteristics(aid, iid, NULL, &outSize);
+
+#if HAP_DEBUG
+	LogD( "errorCode: " + String(errorCode), true );
+	//LogD( "outSize: " + String(outSize), true );
+#endif
+
+	if ( errorCode != 0){
+		// TODO:
+		characteristics_0["status"] = errorCode;
+	} else {
+
+		// outSize = outSize + 1;
+		char value[outSize];
+		_accessorySet->getValueForCharacteristics(aid, iid, value, &outSize);
+
+
+#if HAP_DEBUG
+		LogD( "value: " + String(value), true );
+#endif
+
+
+		if ( strcmp(value, "true") == 0 ) {
+			characteristics_0["value"] = true;
+		} else if ( strcmp(value, "false") == 0 ) {
+			characteristics_0["value"] = false;
+		} else {
+			characteristics_0["value"] = value;	
+		}
+	}
+			
+	root.printTo(response);
+
+#if HAP_DEBUG
+	root.prettyPrintTo(Serial);
+	Serial.println();
+#endif
+	return response;
+}
+
+bool HAPServer::sendEvent(HAPClient* hapClient, String response){
+	LogV("Sending EVENT to client [" + hapClient->client.remoteIP().toString() + "] ...", true);
+	if ( hapClient->client.connected() ){				
+		sendEncrypt(hapClient, EVENT_200, response, false);	
+		return true;
+	} else {
+		LogW("[WARNING] No client available to send the event to!", true);
+	}
+	return false;
+}
 
 bool HAPServer::isPaired(){
 	return _pairings.size() > 0;

@@ -91,7 +91,7 @@ void HAPWiFiHelper::eventHandler(WiFiEvent_t event) {
 			
 			break;	
 		case SYSTEM_EVENT_STA_DISCONNECTED:
-			LogW( F("WARNING: WiFi lost connection!"), true);
+			LogW( F("[WARNING] WiFi lost connection!"), true);			
 			break;
 		case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
 			/*point: the function esp_wifi_wps_start() only get ssid & password

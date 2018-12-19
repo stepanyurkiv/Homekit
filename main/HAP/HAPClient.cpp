@@ -86,3 +86,19 @@ String HAPClient::getVerifyState() const {
 bool HAPClient::operator==(const HAPClient &hap) {
 	return hap.client.fd() == client.fd();
 }
+
+void HAPClient::subscribe(int aid, int iid, bool value){
+	struct HAPSubscribtionItem item = HAPSubscribtionItem(aid, iid);
+	
+	if (value){
+		subscribtions.insert(item);
+	} else {
+		subscribtions.erase(item);
+	}
+	
+}
+
+bool HAPClient::isSubscribed(int aid, int iid){
+	struct HAPSubscribtionItem item = HAPSubscribtionItem(aid, iid);
+	return subscribtions.find(item) != subscribtions.end();
+}

@@ -11,7 +11,7 @@
 
 #include <Arduino.h>
 #include <WiFiClient.h>
-
+#include <set>
 
 #include "HAPRequest.hpp"
 #include "HAPVerifyContext.hpp"
@@ -44,6 +44,16 @@ enum HAPVerifyState {
 	VERIFY_STATE_M4,
 };
 
+struct HAPSubscribtionItem {
+	int aid;
+	int iid;
+
+	HAPSubscribtionItem(int aid_, int iid_) : aid(aid_), iid(iid_) {};
+	bool operator<(const HAPSubscribtionItem& rhs) const {
+		return rhs.aid < this->aid || (rhs.aid == this->aid && rhs.iid < this->iid);
+  	};
+};
+
 class HAPClient {
 public:
 	HAPClient();
@@ -71,7 +81,10 @@ public:
 	String getVerifyState() const;
 	String getClientState() const;
 
+	void subscribe(int aid, int iid, bool value = true);
+	bool isSubscribed(int aid, int iid);
 
+	std::set<HAPSubscribtionItem> subscribtions;
 };
 
 #endif /* HAPCLIENT_HPP_ */

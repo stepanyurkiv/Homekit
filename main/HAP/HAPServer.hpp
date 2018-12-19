@@ -125,7 +125,7 @@ protected:
 	// struct HAPPairSetup* _pairSetup;
 	HAPWebServer _webserver;
 
-	bool _stopEvents;
+	
 	
 	void* _srp;
 	struct HAPLongTermContext* _longTermContext;
@@ -191,8 +191,8 @@ protected:
 	// Identify
 	void handleIdentify(HAPClient* hapClient);
 
-
-
+	bool stopEvents();
+	void stopEvents(bool value);
 
 
 private:
@@ -205,7 +205,7 @@ private:
 
 	bool _firmwareSet;
 
-
+	bool _stopEvents;
 
 
 	//
@@ -256,8 +256,10 @@ private:
 	// 
 	bool sendResponse(HAPClient* hapClient, TLV8* response, bool chunked = true);
 	bool sendEncrypt(HAPClient* hapClient, String httpStatus, String plainText, bool chunked = true);
+	bool sendEvent(HAPClient* hapClient, String response);
 
 
+	String buildEventResponse(int aid, int iid);
 
 	//
 	// encrpytion / decryption
