@@ -14,7 +14,7 @@
 HAPPluginDHT::HAPPluginDHT(){
 	_type = HAP_PLUGIN_TYPE_ACCESSORY;
 	_name = "HAPPluginDHT";
-	_isEnabled = false;
+	_isEnabled = true;
 	_interval = HAP_PLUGIN_INTERVAL;
 	_previousMillis = 0;
 
@@ -31,24 +31,33 @@ void identifyDHT(bool oldValue, bool newValue) {
 }
 
 void changeTemp(float oldValue, float newValue) {
-	//Serial.printf("New temperature %f\n", newValue);
+	Serial.printf("New temperature %f\n", newValue);
 }
 
 void changeHum(int oldValue, int newValue) {
-	//Serial.printf("New humidity %d\n", newValue);
+	Serial.printf("New humidity %d\n", newValue);
 }
 
 
-void HAPPluginDHT::handle(HAPAccessorySet* accessorySet, bool forced){	
+void HAPPluginDHT::handle(bool forced){	
 	if (shouldHandle() || forced) {		
-		setValue(charType_currentTemperature, getValue(charType_currentTemperature), String(random(20,40)));
+		LogD("Handle " + String(__PRETTY_FUNCTION__) + " - interval: " + String(interval()), true);
+
+		setValue(charType_currentTemperature, getValue(charType_currentTemperature), String(random(20,70)) + "." + String(random(50,60)));
 		setValue(charType_currentHumidity, getValue(charType_currentHumidity), String(random(50,60)));
+
+		// Add event
+		struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _humidityValue->iid, _humidityValue->value());							
+		_eventManager->queueEvent( EventManager::kEventFromController, event);
+
+		event = HAPEvent(nullptr, _accessory->aid, _temperatureValue->iid, _temperatureValue->value());							
+		_eventManager->queueEvent( EventManager::kEventFromController, event);
 	}
 }
 
-void HAPPluginDHT::handleEvents(int eventCode, struct HAPEvent eventParam){
-	LogE("!!!!!!!!!!! HANDLE PLUGIN EVENT !!!!!!!!!!!!!!!", true);
-}
+// void HAPPluginDHT::handleEvents(int eventCode, struct HAPEvent eventParam){
+// 	LogE("!!!!!!!!!!! HANDLE PLUGIN EVENT !!!!!!!!!!!!!!!", true);
+// }
 
 void HAPPluginDHT::setValue(String oldValue, String newValue){
 
@@ -56,11 +65,11 @@ void HAPPluginDHT::setValue(String oldValue, String newValue){
 
 void HAPPluginDHT::setValue(uint8_t type, String oldValue, String newValue){
 	if (type == charType_currentTemperature) {
-		//LogW("Setting DHT TEMPERATURE oldValue: " + oldValue + " -> newValue: " + newValue, true);
-		tempValue->setValue(newValue);
+		// LogW("Setting DHT TEMPERATURE oldValue: " + oldValue + " -> newValue: " + newValue, true);
+		_temperatureValue->setValue(newValue);
 	} else if (type == charType_currentHumidity) {
 		//LogW("Setting DHT HUMIDITY oldValue: " + oldValue + " -> newValue: " + newValue, true);
-		humValue->setValue(newValue);
+		_humidityValue->setValue(newValue);
 	}
 }
 
@@ -70,9 +79,9 @@ String HAPPluginDHT::getValue(){
 
 String HAPPluginDHT::getValue(uint8_t type){
 	if (type == charType_currentTemperature) {		
-		return tempValue->value();
+		return _temperatureValue->value();
 	} else if (type == charType_currentHumidity) {
-		return humValue->value();
+		return _humidityValue->value();
 	}
 	return "";
 }
@@ -80,40 +89,40 @@ String HAPPluginDHT::getValue(uint8_t type){
 HAPAccessory* HAPPluginDHT::initAccessory(){
 	LogD("\nInitializing plugin: " + _name + " ...", false);
 
-	HAPAccessory *accessory = new HAPAccessory();
-	HAPAccessory::addInfoServiceToAccessory(accessory, "DHT 1", "ET", "DHT", "12345678", &identifyDHT, version() );
+	_accessory = new HAPAccessory();
+	HAPAccessory::addInfoServiceToAccessory(_accessory, "DHT 1", "ET", "DHT", "12345678", &identifyDHT, version() );
 
 
-	tempService = new HAPService(serviceType_temperatureSensor);
-	accessory->addService(tempService);
+	_temperatureService = new HAPService(serviceType_temperatureSensor);
+	_accessory->addService(_temperatureService);
 
 	stringCharacteristics *tempServiceName = new stringCharacteristics(charType_serviceName, permission_read, 0);
 	tempServiceName->setValue("Temperature Sensor");
-	accessory->addCharacteristics(tempService, tempServiceName);
+	_accessory->addCharacteristics(_temperatureService, tempServiceName);
 
 	//floatCharacteristics(uint8_t _type, int _permission, float minVal, float maxVal, float step, unit charUnit): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit)
 
-	tempValue = new floatCharacteristics(charType_currentTemperature, permission_read, -50, 100, 0.1, unit_celsius);
-	tempValue->setValue("0.0");
-	tempValue->valueChangeFunctionCall = &changeTemp;
-	accessory->addCharacteristics(tempService, tempValue);
+	_temperatureValue = new floatCharacteristics(charType_currentTemperature, permission_read, -50, 100, 0.1, unit_celsius);
+	_temperatureValue->setValue("0.0");
+	_temperatureValue->valueChangeFunctionCall = &changeTemp;
+	_accessory->addCharacteristics(_temperatureService, _temperatureValue);
 
-	humService = new HAPService(serviceType_humiditySensor);
-	accessory->addService(humService);
+	_humidityService = new HAPService(serviceType_humiditySensor);
+	_accessory->addService(_humidityService);
 
 	stringCharacteristics *humServiceName = new stringCharacteristics(charType_serviceName, permission_read, 0);
 	humServiceName->setValue("Humidity Sensor");
-	accessory->addCharacteristics(humService, humServiceName);
+	_accessory->addCharacteristics(_humidityService, humServiceName);
 
 	//intCharacteristics(uint8_t _type, int _permission, int minVal, int maxVal, int step, unit charUnit): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit)
 
-	humValue = new intCharacteristics(charType_currentHumidity, permission_read, 0, 100, 0.1, unit_percentage);
-	humValue->setValue("0");
-	humValue->valueChangeFunctionCall = &changeHum;
-	accessory->addCharacteristics(humService, humValue);
+	_humidityValue = new intCharacteristics(charType_currentHumidity, permission_read, 0, 100, 0.1, unit_percentage);
+	_humidityValue->setValue("0");
+	_humidityValue->valueChangeFunctionCall = &changeHum;
+	_accessory->addCharacteristics(_humidityService, _humidityValue);
 
 
 	LogD("OK", true);
 
-	return accessory;
+	return _accessory;
 }

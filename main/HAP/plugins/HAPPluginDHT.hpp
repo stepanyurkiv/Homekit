@@ -26,14 +26,16 @@ public:
 	String getValue();
 	String getValue(uint8_t type);
 
-    void handle(HAPAccessorySet* accessorySet, bool forced = false);	
-	void handleEvents(int eventCode, struct HAPEvent eventParam);
+    void handle(bool forced = false);	
+	// void handleEvents(int eventCode, struct HAPEvent eventParam);
 private:
-	HAPService *tempService;
-	HAPService *humService;
 
-	intCharacteristics *humValue;
-	floatCharacteristics *tempValue;
+	HAPAccessory*			_accessory;
+	HAPService*				_temperatureService;
+	HAPService*				_humidityService;	
+
+	intCharacteristics*		_humidityValue;
+	floatCharacteristics*	_temperatureValue;
 };
 
 REGISTER_PLUGIN(HAPPluginDHT)

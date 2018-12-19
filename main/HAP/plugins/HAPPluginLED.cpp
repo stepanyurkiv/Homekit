@@ -52,7 +52,6 @@ void changeBrightness(int oldValue, int newValue){
 
 void HAPPluginLED::handle(bool forced){
     
-
     if (shouldHandle() || forced) {        
 
         LogD("Handle " + String(__PRETTY_FUNCTION__) + " - interval: " + String(interval()), true);

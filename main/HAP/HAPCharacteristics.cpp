@@ -118,24 +118,24 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, int 
 
 inline String attribute(unsigned short type, unsigned short acclaim, int p, float value, float minVal, float maxVal, float step, unit valueUnit) {
     String result;
-    char tempStr[4];
-    
-    snprintf(tempStr, 4, "%f", value);
-    
+    char tempStr[16];
+
+    snprintf(tempStr, 16, "%f", value);
+
     if (p & permission_read) {
         result += HAPHelper::wrap("value")+":"+tempStr;
         result += ",";
     }
     
-    snprintf(tempStr, 4, "%f", minVal);
+    snprintf(tempStr, 16, "%f", minVal);
     if (minVal != INT32_MIN)
         result += HAPHelper::wrap("minValue")+":"+tempStr+",";
     
-    snprintf(tempStr, 4, "%f", maxVal);
+    snprintf(tempStr, 16, "%f", maxVal);
     if (maxVal != INT32_MAX)
         result += HAPHelper::wrap("maxValue")+":"+tempStr+",";
     
-    snprintf(tempStr, 4, "%f", step);
+    snprintf(tempStr, 16, "%f", step);
     if (step > 0)
         result += HAPHelper::wrap("minStep")+":"+tempStr+",";
     

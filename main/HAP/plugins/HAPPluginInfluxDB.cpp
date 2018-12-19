@@ -11,7 +11,7 @@
 #include "HAPLogger.hpp"
 #include "HAPCharacteristics.hpp"
 
-#define HAP_PLUGIN_INTERVAL 		30000	// 10 sec
+#define HAP_PLUGIN_INTERVAL 		30000	// 30 sec
 #define HAP_INFLUXDB_TIMEOUT 		10000	// 10 sec
 
 #ifndef HAP_ARDUINOJSON_BUFFER_SIZE
