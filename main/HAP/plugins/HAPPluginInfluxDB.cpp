@@ -11,7 +11,7 @@
 #include "HAPLogger.hpp"
 #include "HAPCharacteristics.hpp"
 
-#define HAP_PLUGIN_INTERVAL 		30000	// 30 sec
+#define HAP_PLUGIN_INTERVAL 		30000	// 10 sec
 #define HAP_INFLUXDB_TIMEOUT 		10000	// 10 sec
 
 #ifndef HAP_ARDUINOJSON_BUFFER_SIZE
@@ -58,14 +58,14 @@ HAPAccessory* HAPPluginInfluxDB::initAccessory(){
 	return nullptr;
 }
 
-void HAPPluginInfluxDB::addEventListener(EventManager* eventManager){
-	listenerMemberFunctionPlugin.mObj = this;
-	listenerMemberFunctionPlugin.mf = &HAPPlugin::handleEvents;
+// void HAPPluginInfluxDB::addEventListener(EventManager* eventManager){
+// 	listenerMemberFunctionPlugin.mObj = this;
+// 	listenerMemberFunctionPlugin.mf = &HAPPlugin::handleEvents;
 	
-	// Add listener to event manager
-	_eventManager = eventManager;
-	_eventManager->addListener( EventManager::kEventFromController, &listenerMemberFunctionPlugin );
-}
+// 	// Add listener to event manager
+// 	_eventManager = eventManager;
+// 	_eventManager->addListener( EventManager::kEventFromController, &listenerMemberFunctionPlugin );
+// }
 
 bool HAPPluginInfluxDB::openDB(){	
 
@@ -102,9 +102,11 @@ bool HAPPluginInfluxDB::openDB(){
 	return _openedDb;
 }
 
-void HAPPluginInfluxDB::handle(HAPAccessorySet* accessorySet, bool forced){	
+void HAPPluginInfluxDB::handle(bool forced){	
+
 	if (shouldHandle() || forced) {
-		LogD("Handle InfluxDB", true);
+
+		LogD("Handle " + String(__PRETTY_FUNCTION__) + " - interval: " + String(interval()), true);
 
 		if (_openedDb == false) {
 			_openedDb = openDB();
@@ -114,7 +116,7 @@ void HAPPluginInfluxDB::handle(HAPAccessorySet* accessorySet, bool forced){
 
 		DynamicJsonBuffer jsonBuffer(HAP_ARDUINOJSON_BUFFER_SIZE);
 
-		JsonObject& root = jsonBuffer.parseObject(accessorySet->describe());
+		JsonObject& root = jsonBuffer.parseObject(_accessorySet->describe());
 		if (!root.success()) {
 			LogE("[ERROR] failed to parse accessorySet!", true);
 			return;
@@ -140,7 +142,9 @@ void HAPPluginInfluxDB::handle(HAPAccessorySet* accessorySet, bool forced){
 	}
 }
 
-
+void HAPPluginInfluxDB::handleEvents(int eventCode, struct HAPEvent eventParam){
+	LogE("Handle event: [" + String(__PRETTY_FUNCTION__) + "]", true);	
+}
 
 
 
@@ -169,17 +173,12 @@ void HAPPluginInfluxDB::handleService(JsonObject& service){
 	
 
 	for (dbMeasurement row : vec) {
-
-    	row.setMeasurement(sName);
-    	
-    	LogD(">>> " + sName, false);
-    	LogD(": " + row.postString(), true);
-    	bool result = _influxdb->write(row) == DB_SUCCESS;
-    	LogD( result ? "OK" : "[ERROR] Updating failed", true);
-
-		// Empty field object.
-		row.empty();
+		row.setMeasurement(sName);
+		LogD(">>> " + sName, false);
+   		LogD(": " + row.postString(), true);
 		
+		sendToInflux(row);
+		row.empty();
 	}
 	vec.clear();
 	
@@ -188,6 +187,12 @@ void HAPPluginInfluxDB::handleService(JsonObject& service){
 
 }
 
+bool HAPPluginInfluxDB::sendToInflux(dbMeasurement row){	
+   	bool result = _influxdb->write(row) == DB_SUCCESS;   	
+	LogD( result ? "OK" : "[ERROR] Updating failed", true);
+	
+	return result;
+}
 String HAPPluginInfluxDB::getServiceName(JsonArray& chrs){
 	for (auto chr : chrs){
 		uint8_t *cType = HAPHelper::hexToBin(chr["type"].as<char*>());
@@ -235,3 +240,21 @@ void HAPPluginInfluxDB::handleCharacteristic(JsonObject& chr, dbMeasurement* row
 	row.empty();
 	*/
 }
+
+//  bool HAPPluginInfluxDB::shouldHandle(){
+
+// 	if (_isEnabled) {
+// 		unsigned long currentMillis = millis(); // grab current time
+
+// 		if ((unsigned long)(currentMillis - _previousMillis) >= _interval) {
+
+// 			// save the last time you blinked the LED
+// 			_previousMillis = currentMillis;
+
+// 			//LogD("Handle plugin: " + String(_name), true);			
+// 			return true;			
+// 		}
+// 	}
+
+// 	return false;
+// }

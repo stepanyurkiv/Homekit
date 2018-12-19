@@ -27,7 +27,7 @@
 #define HAP_GENERATE_XHM			1		// Create hash and qr code
 											// Default: 0
 
-#define HAP_UPDATE_SERVER 			1		// Use HAP update server to check
+#define HAP_UPDATE_SERVER 			0		// Use HAP update server to check
 											// if a update is available on the
 											// provided webserver
 											// Default: 1
@@ -74,7 +74,7 @@
 /**
  * Timeouts
  ********************************************************************/
-#define ESP_WIFI_CONNECTION_TIMEOUT	7000
+#define ESP_WIFI_CONNECTION_TIMEOUT	5000
 
 /**
  * Other - Do not edit !!!

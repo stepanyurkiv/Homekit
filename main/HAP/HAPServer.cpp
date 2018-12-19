@@ -59,6 +59,9 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 	_firmwareSet = false;
 
 	_previousMillis = 0;
+#if HAP_DEBUG
+	_previousMillisHeap = 0;	
+#endif
 	_minimalPluginInterval = HAP_MINIMAL_PLUGIN_INTERVAL;
 	_accessorySet = new HAPAccessorySet();
 
@@ -327,11 +330,17 @@ bool HAPServer::begin() {
 	    		_accessorySet->addAccessory(accessory);    		
 	    	} 
 
-	    	plugin->addEventListener(&_eventManager);	    		
+	    	plugin->addEventListener(&_eventManager);
+			plugin->setAccessorySet(_accessorySet);
 	    	
-	    	if (plugin->interval() > 0 && plugin->interval() < _minimalPluginInterval) {
+	    	if (_minimalPluginInterval == HAP_MINIMAL_PLUGIN_INTERVAL && _minimalPluginInterval < plugin->interval() ) {
 	    		_minimalPluginInterval = plugin->interval();	
-	    	}
+	    	} else if (_minimalPluginInterval > plugin->interval()) {
+				_minimalPluginInterval = plugin->interval();
+			}
+
+			
+			
 	    	
 	    	_plugins.push_back(std::move(plugin));
     	} else {
@@ -579,17 +588,14 @@ void HAPServer::handle() {
 	// Handle any events that are in the queue
 	_eventManager.processEvent();
 
-	// Handle plugins
-	unsigned long currentMillis = millis();
-	if (currentMillis - _previousMillis >= _minimalPluginInterval) {
-		// save the last time you blinked the LED
-		_previousMillis = currentMillis;
-
-		for (auto & plugin : _plugins) {			
-			plugin->handle(_accessorySet);					
-		}
-
-	}	
+	// Handle plugins	
+	// if (millis() - _previousMillis >= _minimalPluginInterval) {
+	// 	// save the last time you blinked the LED
+	// 	_previousMillis = millis();
+	for (auto & plugin : _plugins) {			
+		plugin->handle();					
+	}
+	// }	
 
 #if HAP_DEBUG
 	// Free Heap every interval ms
@@ -2967,7 +2973,5 @@ void HAPServer::__setBrand(const char* brand) {
 	strncpy(_brand, brand + 5, strlen(brand) - 10);
 	_brand[strlen(brand) - 10] = '\0';
 }
-
-
 
 HAPServer hap;

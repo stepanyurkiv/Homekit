@@ -31,19 +31,24 @@ public:
     String getValue() { return ""; };
     String getValue(uint8_t type) { return ""; };
 
-    void handle(HAPAccessorySet* accessorySet, bool forced = false); 
-	// void handleEvents(int eventCode, struct HAPEvent eventParam);
+    void handle(bool forced = false); 
+	void handleEvents(int eventCode, struct HAPEvent eventParam);
 
-	void addEventListener(EventManager* eventManager);
-
+	// void addEventListener(EventManager* eventManager);
+	
 private:
+	
 	Influxdb* _influxdb;
 	bool _openedDb;
+
 
 	bool openDB();
 	void handleCharacteristic(JsonObject& chr, dbMeasurement* row);
 	void handleService(JsonObject& service);
 	String getServiceName(JsonArray& chrs);
+
+	bool sendToInflux(dbMeasurement row);
+	// bool shouldHandle();
 };
 
 REGISTER_PLUGIN(HAPPluginInfluxDB)

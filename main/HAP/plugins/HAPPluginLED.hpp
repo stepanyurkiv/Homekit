@@ -28,13 +28,16 @@ public:
 	String getValue();
 	String getValue(uint8_t type);
 
-	void handle(HAPAccessorySet* accessorySet, bool forced=false);
-	void handleEvents(int eventCode, struct HAPEvent eventParam);
+	void handle(bool forced=false);
+	// void handleEvents(int eventCode, struct HAPEvent eventParam);
 private:	
 	HAPAccessory*			_accessory;
 	HAPService*				_service;	
 	boolCharacteristics* 	_powerState;
 	intCharacteristics*	 	_brightnessState;
+
+	// unsigned long 		_interval;
+	// unsigned long 		_previousMillis;
 
 	// EventManager*	_eventManager;
 	// MemberFunctionCallable<HAPPlugin> listenerMemberFunctionPlugin;

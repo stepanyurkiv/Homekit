@@ -43,8 +43,8 @@ public:
 
 	virtual String getValue() = 0;
 
-	virtual void handle(HAPAccessorySet* accessorySet, bool forced = false) = 0;
-	virtual void handleEvents(int eventCode, struct HAPEvent eventParam){};	
+	virtual void handle(bool forced = false) {};
+	virtual void handleEvents(int eventCode, struct HAPEvent eventParam) {};	
 	
 	// inline void addEvent(int eventCode, int aid, int iid, String value){
 	// 	struct HAPEvent event = HAPEvent(nullptr, aid, iid, value);							
@@ -79,7 +79,7 @@ public:
 		_interval = interval;
 	}
 
-	inline uint8_t shouldHandle(){
+	inline bool shouldHandle(){
 
 		if (_isEnabled) {
 			unsigned long currentMillis = millis(); // grab current time
@@ -90,34 +90,39 @@ public:
 				_previousMillis = currentMillis;
 
 				//LogD("Handle plugin: " + String(_name), true);			
-				return 1;			
+				return true;			
 			}
 		}
 
-		return 0;
+		return false;
 	}
 
 	inline void addEventListener(EventManager* eventManager){
-		listenerMemberFunctionPlugin.mObj = this;
-		listenerMemberFunctionPlugin.mf = &HAPPlugin::handleEvents;
+		_listenerMemberFunctionPlugin.mObj = this;
+		_listenerMemberFunctionPlugin.mf = &HAPPlugin::handleEvents;
 	
 		// Add listener to event manager
 		_eventManager = eventManager;
-		_eventManager->addListener( EventManager::kEventFromController, &listenerMemberFunctionPlugin );
+		_eventManager->addListener( EventManager::kEventFromController, &_listenerMemberFunctionPlugin );
 	}
+
+	inline void setAccessorySet(HAPAccessorySet* accessorySet){
+		_accessorySet = accessorySet;
+	}	
 
 protected:
 	enum HAP_PLUGIN_TYPE _type;
-	String 			_name;
-	bool 			_isEnabled;
+	String 				_name;
+	bool 				_isEnabled;
 
-	unsigned long 	_interval;
-	unsigned long 	_previousMillis;
+	unsigned long 		_interval;
+	unsigned long 		_previousMillis;
 
-	HAPVersion 		_version;
+	HAPVersion 			_version;
 
-	EventManager*	_eventManager;
-	MemberFunctionCallable<HAPPlugin> listenerMemberFunctionPlugin;
+	EventManager*		_eventManager;
+	HAPAccessorySet*	_accessorySet;
+	MemberFunctionCallable<HAPPlugin> _listenerMemberFunctionPlugin;
 };
 
 	/* 

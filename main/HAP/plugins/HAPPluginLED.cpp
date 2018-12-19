@@ -46,15 +46,17 @@ void changeBrightness(int oldValue, int newValue){
 }
 
 
-void HAPPluginLED::handleEvents(int eventCode, struct HAPEvent eventParam){
-	LogE("!!!!!!!!!!! HANDLE PLUGIN EVENT !!!!!!!!!!!!!!!", true);
-}
+// void HAPPluginLED::handleEvents(int eventCode, struct HAPEvent eventParam){
+// 	LogE("Handle event: [" + String(__PRETTY_FUNCTION__) + "]", true);
+// }
 
-void HAPPluginLED::handle(HAPAccessorySet* accessorySet, bool forced){
+void HAPPluginLED::handle(bool forced){
+    
 
     if (shouldHandle() || forced) {        
-        
-        LogW(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Handle LED", true);
+
+        LogD("Handle " + String(__PRETTY_FUNCTION__) + " - interval: " + String(interval()), true);
+
         if (_isOn)
             setValue("true", "false");
         else
@@ -150,3 +152,4 @@ String HAPPluginLED::getValue(uint8_t type){
     }
     return "";
 }
+
