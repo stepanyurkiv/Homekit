@@ -307,6 +307,16 @@ int32_t HAPAccessorySet::getValueForCharacteristics(int aid, int iid, char* out,
 	return HAP_STATUS_RESOURCE_NOT_FOUND;
 }
 
+characteristics* HAPAccessorySet::getCharacteristicsOfType(int aid, uint8_t type){
+	HAPAccessory *a = accessoryWithAID(aid);
+	if (a != NULL) {		
+		characteristics *c = a->characteristicsOfType(type);
+		if (c != NULL){
+			return c;
+		}
+	}
+	return NULL;
+}
 
 characteristics* HAPAccessorySet::getCharacteristics(int aid, int iid){
 	HAPAccessory *a = accessoryWithAID(aid);		

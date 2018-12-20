@@ -14,7 +14,7 @@
 HAPPluginDHT::HAPPluginDHT(){
 	_type = HAP_PLUGIN_TYPE_ACCESSORY;
 	_name = "HAPPluginDHT";
-	_isEnabled = true;
+	_isEnabled = false;
 	_interval = HAP_PLUGIN_INTERVAL;
 	_previousMillis = 0;
 
@@ -34,8 +34,8 @@ void changeTemp(float oldValue, float newValue) {
 	Serial.printf("New temperature: %f\n", newValue);
 }
 
-void changeHum(int oldValue, int newValue) {
-	Serial.printf("New humidity: %d\n", newValue);
+void changeHum(float oldValue, float newValue) {
+	Serial.printf("New humidity: %f\n", newValue);
 }
 
 
@@ -101,7 +101,7 @@ HAPAccessory* HAPPluginDHT::initAccessory(){
 
 	//floatCharacteristics(uint8_t _type, int _permission, float minVal, float maxVal, float step, unit charUnit): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit)
 
-	_temperatureValue = new floatCharacteristics(charType_currentTemperature, permission_read, -50, 100, 0.1, unit_celsius);
+	_temperatureValue = new floatCharacteristics(charType_currentTemperature, permission_read|permission_notify, -50, 100, 0.1, unit_celsius);
 	_temperatureValue->setValue("0.0");
 	_temperatureValue->valueChangeFunctionCall = &changeTemp;
 	_accessory->addCharacteristics(_temperatureService, _temperatureValue);
@@ -115,7 +115,7 @@ HAPAccessory* HAPPluginDHT::initAccessory(){
 
 	//intCharacteristics(uint8_t _type, int _permission, int minVal, int maxVal, int step, unit charUnit): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit)
 
-	_humidityValue = new intCharacteristics(charType_currentHumidity, permission_read, 0, 100, 0.1, unit_percentage);
+	_humidityValue = new floatCharacteristics(charType_currentHumidity, permission_read|permission_notify, 0, 100, 0.1, unit_percentage);
 	_humidityValue->setValue("0");
 	_humidityValue->valueChangeFunctionCall = &changeHum;
 	_accessory->addCharacteristics(_humidityService, _humidityValue);

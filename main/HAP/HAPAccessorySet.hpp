@@ -38,6 +38,7 @@ public:
 	~HAPAccessorySet();
 
 
+	int aid(){ return _aid; };
 	void begin();
 	bool isPaired;
 
@@ -69,6 +70,10 @@ public:
 
 	int32_t getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize);
 	characteristics* getCharacteristics(int aid, int iid);
+
+	characteristics* getCharacteristicsOfType(int aid, uint8_t type);
+
+	void setIdentifyCharacteristic(bool value);
 
 	uint8_t numberOfAccessory();
 

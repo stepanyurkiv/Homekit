@@ -1359,9 +1359,17 @@ void HAPServer::handlePreferences(HAPClient* hapClient){
 void HAPServer::handleIdentify(HAPClient* hapClient){
 	LogI( F("<<< Handle /identify: "), true );
 
+	characteristics* c = _accessorySet->getCharacteristicsOfType(_accessorySet->aid(), charType_identify);
+
 	if ( !isPaired() ) {
 		// Send 204
 		hapClient->client.write( HTTP_204 );
+		hapClient->client.write( HTTP_CRLF );
+
+		if (c != NULL){
+			c->setValue(String(true));
+		}
+		
 	} else {
 		// Send 400
 		hapClient->client.write( HTTP_400 );
@@ -1379,6 +1387,10 @@ void HAPServer::handleIdentify(HAPClient* hapClient){
 	hapClient->client.write( HTTP_CRLF );
 
 	hapClient->request.clear();
+
+	if (c != NULL){
+		c->setValue(String(false));
+	}
 }
 
 /*
@@ -2730,20 +2742,28 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
     			errorOccured = true;
 			} else {
 
-
 				if ( isEvent ) {								
-					LogE("!!!!!!!!!!!!!! ADDiNG EVENT 1!!!", true);
+					LogD("<<< Client [" + hapClient->client.remoteIP().toString() + "] ", false);
+					LogD("subscribed to event with aid: " + String(aid), false);
+					LogD(" - iid: ", false);
+					LogD(String(iid), false);
+					LogD(" - permission: " + String(c->notifiable()), true);
 
-					hapClient->shouldNotify = chr["ev"].as<bool>();
-					
-					
-					hapClient->subscribe(aid, iid, chr["ev"].as<bool>());
+					if (c->notifiable() ) {
+						//hapClient->shouldNotify = chr["ev"].as<bool>();										
+						hapClient->subscribe(aid, iid, chr["ev"].as<bool>());
 #if 0
-					LogD("HAPCLIENT IP: " + hapClient->client.remoteIP().toString(), true);
-					LogD("EVENT IP:     " + event.hapClient->client.remoteIP().toString(), true);
+						LogD("HAPCLIENT IP: " + hapClient->client.remoteIP().toString(), true);
+						LogD("EVENT IP:     " + event.hapClient->client.remoteIP().toString(), true);
 #endif
-					struct HAPEvent event = HAPEvent(hapClient, aid, iid, c->value());					
-					_eventManager.queueEvent( EventManager::kEventFromController, event);
+						struct HAPEvent event = HAPEvent(hapClient, aid, iid, c->value());					
+						_eventManager.queueEvent( EventManager::kEventFromController, event);
+					} else {
+						// char has no event permission
+		    			error_code = HAP_STATUS_NO_NOTIFICATION;
+    					errorOccured = true;
+					}
+
 				} else {
 					isEvent = false;
 						

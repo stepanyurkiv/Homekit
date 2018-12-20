@@ -67,6 +67,17 @@ characteristics *HAPAccessory::characteristicsAtIndex(uint8_t index) {
 	return NULL;
 }
 
+characteristics *HAPAccessory::characteristicsOfType(uint8_t type) {
+	for (std::vector<HAPService *>::iterator it = _services.begin(); it != _services.end(); it++) {
+		for (std::vector<characteristics *>::iterator jt = (*it)->_characteristics.begin(); jt != (*it)->_characteristics.end(); jt++) {
+			if ((*jt)->type == type) {
+				return *jt;
+			}
+		}
+	}
+	return NULL;
+}
+
 
 String HAPAccessory::describe() {
 
@@ -124,7 +135,7 @@ HAPService* HAPAccessory::addInfoServiceToAccessory(HAPAccessory *acc, String ac
 
 
     if ( firmwareRev != "" ) {
-        stringCharacteristics *firmwareRevCha = new stringCharacteristics(charType_firmwareRevision, permission_read, 32);
+        stringCharacteristics *firmwareRevCha = new stringCharacteristics(charType_firmwareRevision, permission_read|permission_notify, 32);
         firmwareRevCha->setValue(firmwareRev);
         acc->addCharacteristics(infoService, firmwareRevCha);    
     }

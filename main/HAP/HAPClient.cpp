@@ -13,7 +13,7 @@ HAPClient::HAPClient()
 , pairState(PAIR_STATE_RESERVED)
 , verifyState(VERIFY_STATE_RESERVED)
 , isEncrypted(false)
-, shouldNotify(false)
+// , shouldNotify(false)
 {
 
 	verifyContext = new struct HAPVerifyContext();

@@ -34,7 +34,7 @@ private:
 	HAPService*				_temperatureService;
 	HAPService*				_humidityService;	
 
-	intCharacteristics*		_humidityValue;
+	floatCharacteristics*	_humidityValue;
 	floatCharacteristics*	_temperatureValue;
 };
 

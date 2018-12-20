@@ -1,0 +1,8 @@
+Height: 16.8
+Width:   9.8
+
+Ration: H-B: 1,7142857143
+
+-->
+Width: 4,9
+-> Height: 8,4
