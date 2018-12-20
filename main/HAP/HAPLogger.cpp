@@ -23,7 +23,7 @@ HAPLogger::~HAPLogger() {
 	// TODO Auto-generated destructor stub
 }
 
-void HAPLogger::logFreeHeap(int clients){
+void HAPLogger::logFreeHeap(int clients, int queue){
 	if (HAPLogger::_logLevel >= LogLevel::DEBUG) {
 		_printer->print(COLOR_WARNING);
 #if HAP_NTP_ENABLED		
@@ -33,8 +33,11 @@ void HAPLogger::logFreeHeap(int clients){
 		_printer->print(ESP.getFreeHeap());
 		_printer->print( F( " - minimum: ") );
 		_printer->print(xPortGetMinimumEverFreeHeapSize());
-		_printer->print( F( " [") );
+		_printer->print( F( " [clients:") );
 		_printer->print(clients);
+		_printer->print( F( "]") );
+		_printer->print( F( " [queue:") );
+		_printer->print(queue);
 		_printer->print( F( "]") );
 		_printer->println(COLOR_RESET);
 	}

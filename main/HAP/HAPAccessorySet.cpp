@@ -300,7 +300,7 @@ int32_t HAPAccessorySet::getValueForCharacteristics(int aid, int iid, char* out,
 	if (c != nullptr) {		
 		*outSize = c->value().length() + 1;
 		if (out != NULL){
-			 c->value().toCharArray(out, *outSize);	
+			c->value().toCharArray(out, *outSize);							
 		}		
 		return 0;
 	}

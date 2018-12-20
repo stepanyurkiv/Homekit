@@ -14,7 +14,7 @@
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
 
-#define HAP_BLINK_INTERVAL 10000
+#define HAP_BLINK_INTERVAL 30000
 
 class HAPPluginLED: public HAPPlugin {
 public:

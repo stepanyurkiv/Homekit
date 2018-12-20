@@ -2,7 +2,7 @@
 #include "HAPPluginDHT.hpp"
 
 
-#define HAP_PLUGIN_INTERVAL 2000
+#define HAP_PLUGIN_INTERVAL 5000
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       0
@@ -31,11 +31,11 @@ void identifyDHT(bool oldValue, bool newValue) {
 }
 
 void changeTemp(float oldValue, float newValue) {
-	Serial.printf("New temperature %f\n", newValue);
+	Serial.printf("New temperature: %f\n", newValue);
 }
 
 void changeHum(int oldValue, int newValue) {
-	Serial.printf("New humidity %d\n", newValue);
+	Serial.printf("New humidity: %d\n", newValue);
 }
 
 
@@ -43,7 +43,7 @@ void HAPPluginDHT::handle(bool forced){
 	if (shouldHandle() || forced) {		
 		LogD("Handle " + String(__PRETTY_FUNCTION__) + " - interval: " + String(interval()), true);
 
-		setValue(charType_currentTemperature, getValue(charType_currentTemperature), String(random(20,70)) + "." + String(random(50,60)));
+		setValue(charType_currentTemperature, getValue(charType_currentTemperature), String(random(20,70)) + "." + String(random(0,9)));
 		setValue(charType_currentHumidity, getValue(charType_currentHumidity), String(random(50,60)));
 
 		// Add event
@@ -64,8 +64,7 @@ void HAPPluginDHT::setValue(String oldValue, String newValue){
 }
 
 void HAPPluginDHT::setValue(uint8_t type, String oldValue, String newValue){
-	if (type == charType_currentTemperature) {
-		// LogW("Setting DHT TEMPERATURE oldValue: " + oldValue + " -> newValue: " + newValue, true);
+	if (type == charType_currentTemperature) {		
 		_temperatureValue->setValue(newValue);
 	} else if (type == charType_currentHumidity) {
 		//LogW("Setting DHT HUMIDITY oldValue: " + oldValue + " -> newValue: " + newValue, true);

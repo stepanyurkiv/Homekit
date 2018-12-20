@@ -602,7 +602,7 @@ void HAPServer::handle() {
 	if ( millis() - _previousMillisHeap >= 1000) {
 	    // save the last time you blinked the LED
 	    _previousMillisHeap = millis();
-	    Heap(_clients.size());
+	    Heap(_clients.size(), _eventManager.getNumEventsInQueue());
 	}
 #endif
 	
@@ -2735,14 +2735,14 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 					LogE("!!!!!!!!!!!!!! ADDiNG EVENT 1!!!", true);
 
 					hapClient->shouldNotify = chr["ev"].as<bool>();
-					struct HAPEvent event = HAPEvent(hapClient, aid, iid, chr["ev"].as<String>());					
+					
 					
 					hapClient->subscribe(aid, iid, chr["ev"].as<bool>());
 #if 0
 					LogD("HAPCLIENT IP: " + hapClient->client.remoteIP().toString(), true);
 					LogD("EVENT IP:     " + event.hapClient->client.remoteIP().toString(), true);
 #endif
-
+					struct HAPEvent event = HAPEvent(hapClient, aid, iid, c->value());					
 					_eventManager.queueEvent( EventManager::kEventFromController, event);
 				} else {
 					isEvent = false;
@@ -2757,6 +2757,9 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 						LogV(" to value: " + value, true);
 
 						c->setValue(value);
+
+						struct HAPEvent event = HAPEvent(hapClient, aid, iid, c->value());					
+						_eventManager.queueEvent( EventManager::kEventFromController, event);
 
 						error_code = HAP_STATUS_SUCCESS;
 						errorOccured = false;
@@ -2900,9 +2903,7 @@ String HAPServer::buildEventResponse(int aid, int iid){
 
 		// outSize = outSize + 1;
 		char value[outSize];
-		_accessorySet->getValueForCharacteristics(aid, iid, value, &outSize);
-
-
+		_accessorySet->getValueForCharacteristics(aid, iid, value, &outSize);		
 #if HAP_DEBUG
 		LogD( "value: " + String(value), true );
 #endif

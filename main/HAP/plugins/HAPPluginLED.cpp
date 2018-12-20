@@ -38,7 +38,7 @@ void changeLightPower(bool oldValue, bool newValue) {
         digitalWrite(BUILTIN_LED, HIGH);    
     } else {
         digitalWrite(BUILTIN_LED, LOW);
-    }        
+    }      
 }
 
 void changeBrightness(int oldValue, int newValue){
@@ -62,7 +62,6 @@ void HAPPluginLED::handle(bool forced){
             setValue("false", "true");
 
         // Add event
-        // addEvent(EventManager::kEventFromController, _accessory->aid, _powerState->iid, _powerState->value());
 		struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _powerState->iid, _powerState->value());							
 		_eventManager->queueEvent( EventManager::kEventFromController, event);
 
@@ -123,7 +122,7 @@ void HAPPluginLED::setValue(String oldValue, String newValue){
 }
 
 void HAPPluginLED::setValue(uint8_t type, String oldValue, String newValue){
-    //LogW("Setting LED oldValue: " + oldValue + " -> newValue: " + newValue, true);
+    LogW("-> Setting LED oldValue: " + oldValue + " -> newValue: " + newValue, true);
     if (type == charType_on) {
         _powerState->setValue(newValue);
 
@@ -132,6 +131,10 @@ void HAPPluginLED::setValue(uint8_t type, String oldValue, String newValue){
         } else {
             _isOn = false;
         }    
+
+        struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _powerState->iid, _powerState->value());							
+	    _eventManager->queueEvent( EventManager::kEventFromController, event);
+ 
     } else if (type == charType_brightness) {        
         _brightnessState->setValue(newValue);
     }

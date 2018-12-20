@@ -31,7 +31,7 @@
 #define COLOR_VERBOSE	COLOR_MAGENTA
 
 
-#define Heap(X)			HAPLogger::logFreeHeap(X)
+#define Heap(X, Y)		HAPLogger::logFreeHeap(X, Y)
 #define Log(X, Y, Z) 	HAPLogger::colorPrint(X,Y,Z)
 
 #define LogOK(X)		HAPLogger::logOK(X)
@@ -68,7 +68,7 @@ public:
 	//static Stream* stream();
 
 	static void printInfo();
-	static void logFreeHeap(int clients = 0);
+	static void logFreeHeap(int clients = 0, int queue = 0);
 
 	static void colorPrint(const char* color, int num, bool newLine);
 	static void colorPrint(const char* color, const char* text, bool newLine);

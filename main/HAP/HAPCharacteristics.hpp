@@ -264,13 +264,13 @@ public:
     floatCharacteristics(uint8_t _type, int _permission, float minVal, float maxVal, float step, unit charUnit): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit) {}
     
     virtual String value() {
-        char temp[16];
-        snprintf(temp, 16, "%f", _value);
+        char temp[16];        
+        snprintf(temp, 16, "%.1f", _value);
         return temp;
     }
     
     virtual void setValue(String str) {
-        float temp = atof(str.c_str());
+        float temp = atof(str.c_str());    
         if (temp == temp) {
             if (valueChangeFunctionCall)
                 valueChangeFunctionCall(_value, temp);

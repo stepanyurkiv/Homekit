@@ -118,10 +118,11 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, int 
 
 inline String attribute(unsigned short type, unsigned short acclaim, int p, float value, float minVal, float maxVal, float step, unit valueUnit) {
     String result;
+    
     char tempStr[16];
-
-    snprintf(tempStr, 16, "%f", value);
-
+    //snprintf(tempStr, 16, "%.1f", value);
+    dtostrf(value, 2, 1, tempStr); //2 is mininum width, 1 is precision
+    
     if (p & permission_read) {
         result += HAPHelper::wrap("value")+":"+tempStr;
         result += ",";
