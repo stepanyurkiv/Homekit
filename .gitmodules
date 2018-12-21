@@ -16,3 +16,9 @@
 [submodule "utils/hap-client"]
 	path = utils/hap-client
 	url = https://github.com/forty2/hap-client.git
+[submodule "components/ESPAsyncWebServer"]
+	path = components/ESPAsyncWebServer
+	url = https://github.com/me-no-dev/ESPAsyncWebServer.git
+[submodule "components/AsyncTCP"]
+	path = components/AsyncTCP
+	url = https://github.com/me-no-dev/AsyncTCP.git
