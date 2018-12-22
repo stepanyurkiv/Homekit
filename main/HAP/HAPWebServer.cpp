@@ -55,20 +55,18 @@ void HAPWebServer::begin(){
 		LogD( " url: " + request->url(),true);
 		
 		if (request->url() == "/api/debug"){
-			String key = "debug";
+			String key = "debug";			
 			String value = "{";
 			
-			value += HAPHelper::removeBrackets(_callbackApiDebugHapClients());
-			Serial.println(value);
+			value += HAPHelper::removeBrackets(_callbackApiDebugHapClients());			
+			
 			value += ",";	
+			
 			value += HAPHelper::removeBrackets(_callbackApiAccessories());
-			Serial.println(value);
-
+			
 			value += "}";
 
-			String response = HAPHelper::dictionaryWrap(&key, &value, 1);
-			
-			request->send(200, "application/json", response);
+			request->send(200, "application/json", HAPHelper::dictionaryWrap(&key, &value, 1));
 		} else {
 			notFound(request);
 		}
