@@ -43,4 +43,5 @@ void HAPRequest::clear(){
 	method = METHOD_UNKNOWN;
 
 	tlv.clear();
+	params.clear();
 }

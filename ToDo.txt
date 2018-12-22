@@ -1,0 +1,11 @@
+
+
+Member functions that do not modify the class instance should be declared as const:
+
+Implement callbacks
+-> accessory identify function
+-> plugins 
+https://stackoverflow.com/questions/400257/how-can-i-pass-a-class-member-function-as-a-callback
+https://stackoverflow.com/questions/14189440/c-callback-using-class-member
+
+cleanup unused code and variables!!

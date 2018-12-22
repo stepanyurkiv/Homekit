@@ -13,8 +13,13 @@
 #include <WiFiClient.h>
 #include <set>
 
+#include "HAPGlobals.hpp"
 #include "HAPRequest.hpp"
 #include "HAPVerifyContext.hpp"
+
+#if HAP_API_ADMIN_MODE
+#include <ArduinoJson.h>
+#endif
 
 
 enum HAPClientState {
@@ -52,6 +57,10 @@ struct HAPSubscribtionItem {
 	bool operator<(const HAPSubscribtionItem& rhs) const {
 		return rhs.aid < this->aid || (rhs.aid == this->aid && rhs.iid < this->iid);
   	};
+
+	String describe() const {
+		return String(aid) + "." + String(iid);
+	}
 };
 
 class HAPClient {
@@ -75,16 +84,20 @@ public:
 	bool			isEncrypted;
 	//bool			shouldNotify;
 
-	bool operator==(const HAPClient &hap);
+	bool operator==(const HAPClient &hap) const;
 
 	String getPairState() const;
 	String getVerifyState() const;
 	String getClientState() const;
 
 	void subscribe(int aid, int iid, bool value = true);
-	bool isSubscribed(int aid, int iid);
+	bool isSubscribed(int aid, int iid) const;
 
 	std::set<HAPSubscribtionItem> subscribtions;
+
+#if HAP_API_ADMIN_MODE
+	String describe() const;
+#endif
 };
 
 #endif /* HAPCLIENT_HPP_ */

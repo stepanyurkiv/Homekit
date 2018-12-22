@@ -1,18 +1,30 @@
 #ifndef HAPWEBSERVERAPI_HPP
 #define HAPWEBSERVERAPI_HPP
 
-#include <WebServer.h>
+#include <Arduino.h>
+#include <ArduinoJson.h>
+#include <ESPAsyncWebserver.h>
+#include <vector>
+#include <functional>
 
-class HAPWebserverAPI : public RequestHandler {
-public:
-    HAPWebserverAPI(const char* uri = "api") : _uri(uri){}
+#include "HAPLogger.hpp"
 
-    bool handle(WebServer& server, HTTPMethod requestMethod, String requestUri) override;    
-    bool canHandle(HTTPMethod method, String uri) override;
+typedef std::function<String(void)> RestApiHandlerFunction;
 
-protected:
-    String _uri;  
+class HAPWebserverAPI
+{
+public :
+	HAPWebserverAPI(){
+	};
+
+	void handleAPI (AsyncWebServerRequest *request);
+    void handleGetDebugWifi(AsyncWebServerRequest *request);
+
+    // callbacks
+    void setCallbackDebugWiFiClients(RestApiHandlerFunction callback){ _callbackDebugWiFiClients = callback; }
+private:    
+
+    RestApiHandlerFunction _callbackDebugWiFiClients;
 };
-
 
 #endif //HAPWEBSERVERAPI_HPP

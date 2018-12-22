@@ -6,76 +6,88 @@
 //      Author: michael
 //
 
+#include <ArduinoJson.h>
 #include "HAPWebServer.hpp"
-#include "ArduinoJson.h"
-
-#include "HAPWebserverAPI.hpp"
-
 #include "HAPDeviceID.hpp"
+#include "HAPHelper.hpp"
 
-WebServer* HAPWebServer::_webserver;
+AsyncWebServer* HAPWebServer::_webserver;
 
-HAPWebServer::HAPWebServer(){
-	_webserver = new WebServer(80);
-	_test = "TEST";
+HAPWebServer::HAPWebServer(uint16_t port){
+	_webserver = new AsyncWebServer(port);
 }
-
-void HAPWebServer::handle(){
-	_webserver->handleClient();	
-}
-
-
 
 void HAPWebServer::begin(){
-	// _webserver->on("/", HTTP_ANY, std::bind(&HAPWebServer::handleRoot, this, std::placeholders::_1));
+	
+	_webserver->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+		LogD(__PRETTY_FUNCTION__,false);		
+		LogD( " url: " + request->url(),true);		
+        request->send(200, "text/plain", "Hello, world");
+    });
 
- 	_webserver->on("/", []() {
-    	_webserver->send(200, "text/plain", "hello from esp32!");
-  	});
+#if HAP_API_ADMIN_MODE
+	_webserver->on("/api/accessories", HTTP_GET, [this](AsyncWebServerRequest *request){
+		LogD(__PRETTY_FUNCTION__,false);		
+		LogD( " url: " + request->url(),true);		
+		if (request->url() == "/api/accessories")	{
+    		request->send(200, "application/json", _callbackApiAccessories());
+		} else {
+			notFound(request);
+		}    	
+    });
 
-  	_webserver->on("/api/heap", HTTP_GET, []() {
-    	_webserver->send(200, "text/plain", String(ESP.getFreeHeap()));
+#endif
 
-  //   	const size_t bufferSize = JSON_OBJECT_SIZE(1);
-		// DynamicJsonBuffer jsonBuffer(bufferSize);
 
-		// JsonObject& root = jsonBuffer.createObject();
-		// root["heap"] = ESP.getFreeHeap();
+#if HAP_DEBUG	
+	_webserver->on("/api/debug/clients", HTTP_GET, [this](AsyncWebServerRequest *request){
+		LogD(__PRETTY_FUNCTION__,false);		
+		LogD( " url: " + request->url(),true);	
+		if (request->url() == "/api/debug/clients")	{
+    		request->send(200, "application/json", _callbackApiDebugHapClients());
+		} else {
+			notFound(request);
+		}			
+    });
 
-		// String jsonResponse;
-  // 		root.prettyPrintTo(jsonResponse);
-  // 		_webserver->send ( 200, "application/json", jsonResponse );		
-
-  	});
-
-  	_webserver->on("/api/info", HTTP_GET, []() {
-    	//_webserver->send(200, "text/plain", String(ESP.getFreeHeap()));
-
-    	const size_t bufferSize = JSON_OBJECT_SIZE(2);
-		DynamicJsonBuffer jsonBuffer(bufferSize);
-
-		JsonObject& root = jsonBuffer.createObject();
+	_webserver->on("/api/debug", HTTP_GET, [this](AsyncWebServerRequest *request){
+		LogD(__PRETTY_FUNCTION__,false);		
+		LogD( " url: " + request->url(),true);
 		
-		root["deviceId"] = HAPDeviceID::deviceID();
-		root["heap"] = ESP.getFreeHeap();
+		if (request->url() == "/api/debug"){
+			String key = "debug";
+			String value = "{";
+			
+			value += HAPHelper::removeBrackets(_callbackApiDebugHapClients());
+			Serial.println(value);
+			value += ",";	
+			value += HAPHelper::removeBrackets(_callbackApiAccessories());
+			Serial.println(value);
 
-		String jsonResponse;
-  		root.prettyPrintTo(jsonResponse);
-  		_webserver->send ( 200, "application/json", jsonResponse );		
+			value += "}";
 
-  	});
+			String response = HAPHelper::dictionaryWrap(&key, &value, 1);
+			
+			request->send(200, "application/json", response);
+		} else {
+			notFound(request);
+		}
 
-	_webserver->on("/api/config", HTTP_GET, []() {    	
-    	_webserver->send(200, "text/plain", "config: {\"config\": []}");
-  	});
-  
-  	_webserver->on("/api/devices/{}/id/{}", []() {
-    	String device = _webserver->pathArg(0);
-    	String id = _webserver->pathArg(1);
-    	_webserver->send(200, "text/plain", "devices: '" + device + "' and id: '" + id + "'");
-  	});
+    });
+#endif
 
-	_webserver->addHandler(new HAPWebserverAPI("/index"));
+
+
+	_webserver->onNotFound(std::bind(&HAPWebServer::notFound, this, std::placeholders::_1));
+
+	// _webserver->on("/api", HTTP_ANY, std::bind(&HAPWebserverAPI::handleAPI, _webserverAPI, std::placeholders::_1));
+
 	_webserver->begin();
+	
+}
+
+
+void HAPWebServer::notFound(AsyncWebServerRequest *request) {
+    request->send(404, "text/plain", "Not found");
 }
 

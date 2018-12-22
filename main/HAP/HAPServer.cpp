@@ -351,10 +351,6 @@ bool HAPServer::begin() {
     	}
 	}
 
-
-
-	
-
 	//
 	// Starting HAP server
 	// 
@@ -369,6 +365,18 @@ bool HAPServer::begin() {
 	// 
 #if HAP_ENABLE_WEBSERVER
 	LogV("Starting webserver ...", false);
+
+
+#if HAP_API_ADMIN_MODE	
+	// Get hap accessories
+	_webserver.setCallbackApiAccessories(std::bind(&HAPServer::callbackGetAccessories, this));
+#endif
+
+#if HAP_DEBUG
+	_webserver.setCallbackApiDebugHapClients(std::bind(&HAPServer::callbackApiHapClients, this));
+#endif	
+
+
 	_webserver.begin();
 	LogV("OK", true);
 #endif
@@ -580,10 +588,10 @@ void HAPServer::handle() {
 	_updater.handle();
 #endif	
 
-	// Webserver
-#if HAP_ENABLE_WEBSERVER
-	_webserver.handle();
-#endif
+// Webserver
+// #if HAP_ENABLE_WEBSERVER
+// 	_webserver.handle();
+// #endif
 
 	// Handle any events that are in the queue
 	_eventManager.processEvent();
@@ -2799,41 +2807,46 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 				}
 	    	}
 
+			// Send response if not subscribed
+			//if (!hapClient->isSubscribed(aid, iid)){
+				if ( onlyOne && (errorOccured == false) ) {
+					httpStatusStr = HTTP_204;
+				} else {
 
-			if ( onlyOne && (errorOccured == false) ) {
-				httpStatusStr = HTTP_204;
-			} else {
+					httpStatusStr = HTTP_207;
 
-				httpStatusStr = HTTP_207;
+					char c1[3], c2[3];
+					sprintf(c1, "%d", aid);
+					sprintf(c2, "%d", iid);
+					String s[3] = {String(c1), String(c2), String(error_code)};
+					String k[3] = {"aid", "iid", "status"};
+					if (result.length() != 1) {
+						result += ",";
+					}
 
-				char c1[3], c2[3];
-				sprintf(c1, "%d", aid);
-				sprintf(c2, "%d", iid);
-				String s[3] = {String(c1), String(c2), String(error_code)};
-				String k[3] = {"aid", "iid", "status"};
-				if (result.length() != 1) {
-					result += ",";
+					String _result = HAPHelper::dictionaryWrap(k, s, 3);
+					result += _result;
 				}
 
-				String _result = HAPHelper::dictionaryWrap(k, s, 3);
-				result += _result;
-			}
+			
+				result += "]";
 
-	   	}
-		result += "]";
+				String d = "characteristics";
+				result = HAPHelper::dictionaryWrap(&d, &result, 1);
 
-		String d = "characteristics";
-		result = HAPHelper::dictionaryWrap(&d, &result, 1);
+				if (errorOccured == false) {
+					result = "";
+				}
 
-		if (errorOccured == false) {
-			result = "";
-		}
+				LogD(">>> Sending result: ", false);
+				LogD(httpStatusStr, true);
+				LogD(result, true);
 
-		LogD(">>> Sending result: ", false);
-		LogD(httpStatusStr, true);
-		LogD(result, true);
+				sendEncrypt(hapClient, httpStatusStr, result);
+			//}
 
-		sendEncrypt(hapClient, httpStatusStr, result);
+			
+		} 
 	}
 }
 
@@ -2968,6 +2981,38 @@ String HAPServer::versionString(){
 }
 
 
+
+#if HAP_API_ADMIN_MODE
+
+String HAPServer::callbackApiHapClients(){
+	LogD(__PRETTY_FUNCTION__, true);		
+	
+	String keys[1];
+	String values[1];
+		
+	{
+		int i=0;
+		int noOfClients = _clients.size();
+		String *clients = new String[noOfClients];
+		for (auto &client : _clients){
+				clients[i++] = client.describe();
+		}
+		keys[0] = "clients";
+		values[0] = HAPHelper::arrayWrap(clients, noOfClients);
+		delete [] clients;
+	}
+	return HAPHelper::dictionaryWrap(keys, values, 1);
+}
+
+#endif
+
+String HAPServer::callbackGetAccessories(){
+	LogD(__PRETTY_FUNCTION__, true);		
+	return _accessorySet->describe();
+}
+
+
+
 void HAPServer::__setFirmware(const char* name, const char* version) {
 
 	if (strlen(name) + 1 - 10 > MAX_FIRMWARE_NAME_LENGTH || strlen(version) + 1 - 10 > MAX_FIRMWARE_VERSION_LENGTH) {
@@ -2994,5 +3039,8 @@ void HAPServer::__setBrand(const char* brand) {
 	strncpy(_brand, brand + 5, strlen(brand) - 10);
 	_brand[strlen(brand) - 10] = '\0';
 }
+
+
+
 
 HAPServer hap;

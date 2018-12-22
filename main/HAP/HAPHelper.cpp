@@ -135,24 +135,33 @@ void HAPHelper::prependZeros(char *dest, const char *src, uint8_t width) {
 	strcpy(dest + zeros, src);
 }
 
+String HAPHelper::removeBrackets(String str){
+	if (str.length() > 2) {
+    	str = str.substring(1, str.length()-1);
+	}
+	return str;	
+}
 
+
+String HAPHelper::wrap(String str) { 
+	return String("\"" + str + "\""); 
+}
 
 String HAPHelper::wrap(const char *str) { 
 	return String("\"" + String(str) + "\""); 
 }
 
 String HAPHelper::arrayWrap(String *s, unsigned short len) {
-	String result;
-	
-	result += "[";
+	String result;	
+	result = "[";
 	
 	for (int i = 0; i < len; i++) {
 		result += s[i]+",";
 	}
-	result = result.substring(0, result.length()-1);
+	if (len > 0)
+		result = result.substring(0, result.length()-1);
 	
-	result += "]";
-	
+	result += "]";	
 	return result;
 }
 

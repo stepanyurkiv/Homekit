@@ -10,24 +10,49 @@
 #define HAPWEBSERVER_HPP_
 
 #include <Arduino.h>
-#include <Webserver.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 #include <functional>
 
+// #include "HAPWebserverAPI.hpp"
 #include "HAPGlobals.hpp"
 #include "HAPLogger.hpp"
 
+typedef std::function<String(void)> RestApiHandlerFunction;
+
 class HAPWebServer {
 public:
-	HAPWebServer();
+	HAPWebServer(uint16_t port = 80);
 	// ~HAPWebServer();
-	
+
 	void begin();
 
-	void handle();
+	// callbacks
+#if HAP_API_ADMIN_MODE	
+	void setCallbackApiAccessories(RestApiHandlerFunction callback){ 
+		_callbackApiAccessories = callback; 
+	}
+#endif
+
+#if HAP_DEBUG
+    void setCallbackApiDebugHapClients(RestApiHandlerFunction callback){ 
+		_callbackApiDebugHapClients = callback; 
+	}
+#endif
+
+	void notFound(AsyncWebServerRequest *request);
 
 private:
-	static WebServer* _webserver;
-	String _test;
+	static AsyncWebServer*	 _webserver;
+
+
+
+#if HAP_API_ADMIN_MODE
+	RestApiHandlerFunction	 _callbackApiDebugHapClients;
+	RestApiHandlerFunction	 _callbackApiAccessories;
+#endif
+
+	// HAPWebserverAPI			 _webserverAPI;
 };
 
 #endif /* HAPWEBSERVER_HPP_ */

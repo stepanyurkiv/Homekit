@@ -71,6 +71,9 @@
 #endif
 
 
+#define HAP_API_ADMIN_MODE			1	// Allows detailed information on api interface
+
+
 /**
  * Timeouts
  ********************************************************************/

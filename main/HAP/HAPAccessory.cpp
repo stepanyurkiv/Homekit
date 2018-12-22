@@ -42,7 +42,7 @@ bool HAPAccessory::removeCharacteristics(characteristics *cha) {
 
 
 
-uint8_t HAPAccessory::numberOfService() { 
+uint8_t HAPAccessory::numberOfService() const { 
 	return _services.size(); 
 }
 
@@ -79,7 +79,7 @@ characteristics *HAPAccessory::characteristicsOfType(uint8_t type) {
 }
 
 
-String HAPAccessory::describe() {
+String HAPAccessory::describe() const {
 
     String keys[2];
     String values[2];
@@ -103,8 +103,8 @@ String HAPAccessory::describe() {
         delete [] services;
     }
     
-    String result = HAPHelper::dictionaryWrap(keys, values, 2);
-    return result;
+    
+    return HAPHelper::dictionaryWrap(keys, values, 2);
 }
 
 

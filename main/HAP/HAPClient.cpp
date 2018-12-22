@@ -7,6 +7,7 @@
 //
 
 #include "HAPClient.hpp"
+#include "HAPHelper.hpp"
 
 HAPClient::HAPClient()
 : state(CLIENT_STATE_DISCONNECTED)
@@ -21,7 +22,10 @@ HAPClient::HAPClient()
 }
 
 HAPClient::~HAPClient() {
-	// TODO Auto-generated destructor stub
+	
+	//delete [] verifyContext;
+	//delete [] encryptionContext;
+	subscribtions.clear();
 }
 
 String HAPClient::getClientState() const {
@@ -83,7 +87,7 @@ String HAPClient::getVerifyState() const {
 	}
 }
 
-bool HAPClient::operator==(const HAPClient &hap) {
+bool HAPClient::operator==(const HAPClient &hap) const {
 	return hap.client.fd() == client.fd();
 }
 
@@ -98,7 +102,48 @@ void HAPClient::subscribe(int aid, int iid, bool value){
 	
 }
 
-bool HAPClient::isSubscribed(int aid, int iid){
+bool HAPClient::isSubscribed(int aid, int iid) const {
 	struct HAPSubscribtionItem item = HAPSubscribtionItem(aid, iid);
 	return subscribtions.find(item) != subscribtions.end();
 }
+
+
+#if HAP_API_ADMIN_MODE
+
+String HAPClient::describe() const {
+	
+	String keys[4];
+    String values[4];
+    int i=0;
+    {
+        keys[i] = "isEncrypted";        
+        values[i++] = String(isEncrypted);
+    }
+	{
+        keys[i] = "state";        
+        values[i++] = String(state);
+    }
+
+	{
+        keys[i] = "ip";        
+        values[i++] = HAPHelper::wrap(client.remoteIP().toString());
+    }
+
+	{
+        //Form subscribtions list
+        int j=0;
+		int noOfSubscribtions = subscribtions.size();
+        String *subs = new String[noOfSubscribtions];
+		for (auto &sub : subscribtions ) {
+			subs[j++] = sub.describe();
+		}
+        keys[i] = "subscribtions";
+        values[i++] = HAPHelper::arrayWrap(subs, noOfSubscribtions);
+        delete [] subs;
+    }
+	
+    return HAPHelper::dictionaryWrap(keys, values, i);
+}
+
+
+#endif

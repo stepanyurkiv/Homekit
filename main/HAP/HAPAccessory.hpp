@@ -32,13 +32,13 @@ public:
 
     HAPAccessory();
 
-    uint8_t numberOfService();
+    uint8_t numberOfService() const;
     HAPService *serviceAtIndex(uint8_t index);
-    
+
     characteristics *characteristicsAtIndex(uint8_t index);
     characteristics *characteristicsOfType(uint8_t type);
 
-    String describe();
+    String describe() const;
 
     static HAPService* addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunction identifyCallback, String firmwareRev = "");
     

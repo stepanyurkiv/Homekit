@@ -110,7 +110,7 @@ public:
 	void __setFirmware(const char* name, const char* version);
 	void __setBrand(const char* brand);
 
-
+	
 
 #if HAP_NTP_ENABLED
 	static String timeString();
@@ -172,8 +172,6 @@ protected:
 		return _firmware.version;
 	}
 
-
-
 	//
 	// HTTP Paths
 	//
@@ -195,6 +193,13 @@ protected:
 	void stopEvents(bool value);
 
 
+	// Callbacks
+	String callbackGetAccessories();
+
+#if HAP_API_ADMIN_MODE
+	String callbackApiHapClients();
+#endif
+
 private:
 	struct {
 		char name[MAX_FIRMWARE_NAME_LENGTH];
@@ -207,6 +212,7 @@ private:
 
 	bool _stopEvents;
 
+	
 
 	//
 	// Bonjour

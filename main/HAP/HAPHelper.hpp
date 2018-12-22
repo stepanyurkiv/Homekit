@@ -25,23 +25,22 @@ public:
 	
 	// static String getValue(String data, char separator, int index) __attribute__ ((deprecated));	
 	
-
 	static void binToHex(const unsigned char * in, size_t insz, char * out, size_t outsz) __attribute__ ((deprecated));
 
 	// DEPRECATED functions causing memory leaks	
 	static byte* hexToBin(const char* string) __attribute__ ((deprecated));	
-	static char* toHex(const unsigned char * in, size_t insz) __attribute__ ((deprecated));
-	
+	static char* toHex(const unsigned char * in, size_t insz) __attribute__ ((deprecated));	
 
 	static void prependZeros(char *dest, const char *src, uint8_t width); // __attribute__ ((deprecated)); 
 
 	static uint8_t numDigits(const size_t n);
 	static void arrayPrint(uint8_t* a, int len);
 	
+	static String wrap(String str);
 	static String wrap(const char *str);
 	static String arrayWrap(String *s, unsigned short len);
 	static String dictionaryWrap(String *key, String *value, unsigned short len);
-
+	static String removeBrackets(String str);
 
 	static String printUnescaped(String str);
 

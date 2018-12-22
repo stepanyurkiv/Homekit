@@ -2,18 +2,32 @@
 
 #include "HAPWebserverAPI.hpp"
 
-bool HAPWebserverAPI::handle(WebServer& server, HTTPMethod requestMethod, String requestUri) { 
-	if (requestMethod != HTTP_GET || requestUri != _uri) {
-        return false;
+
+void HAPWebserverAPI::handleAPI(AsyncWebServerRequest *request){
+    LogV("Webserver request URL: " + request->url(), true);
+                
+    std::vector<String> urlSegements;
+    char* ptr = strtok((char*)request->url().c_str(), "/");
+        
+    while(ptr){
+        urlSegements.push_back(ptr);
+        ptr = strtok(NULL, "/");
     }
 
-    server.send(200, "text/plain", "This is an api page");
-    return true;
+    if ( urlSegements[1] == "debug" ){
+
+        if ( request->method() == HTTP_GET && urlSegements[2] == "wifi" ){
+            handleGetDebugWifi(request);
+        }
+
+    }
+
+    request->send(200, "text/plain", "api: " + urlSegements[0] + " mod: " + urlSegements[1] + " op: " + urlSegements[2]);
+    urlSegements.clear();
 }
 
-bool HAPWebserverAPI::canHandle(HTTPMethod method, String uri) {
-	if (method != HTTP_GET || uri != _uri) {
-        return false;
-    }
-	return true;
+void HAPWebserverAPI::handleGetDebugWifi(AsyncWebServerRequest *request){
+    _callbackDebugWiFiClients();
+    
+    request->send(200, "text/plain", request->url());
 }
