@@ -27,11 +27,14 @@ HAPPluginLED::HAPPluginLED(){
     _version.build      = VERSION_BUILD;
 }
 
-void identify(bool oldValue, bool newValue) {
-    printf("Start Identify Light\n");
-}
+// void identify(bool oldValue, bool newValue) {
+//     printf("Start Identify Light\n");
 
-void changeLightPower(bool oldValue, bool newValue) {
+//     characteristics *c = _accessory->characteristicsOfType(charType_identify);
+//     c->setValue(String(false));
+// }
+
+void HAPPluginLED::changePower(bool oldValue, bool newValue) {
     printf("New light power state: %d\n", newValue);
 
     if (newValue == true) {
@@ -41,7 +44,7 @@ void changeLightPower(bool oldValue, bool newValue) {
     }      
 }
 
-void changeBrightness(int oldValue, int newValue){
+void HAPPluginLED::changeBrightness(int oldValue, int newValue){
     //printf("New brightness state: %d\n", newValue);
 }
 
@@ -81,7 +84,9 @@ HAPAccessory* HAPPluginLED::initAccessory(){
     digitalWrite(BUILTIN_LED, _isOn); 
 
 	_accessory = new HAPAccessory();
-	HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
+	//HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
+    auto callbackIdentify = std::bind(&HAPPlugin::identify, this, std::placeholders::_1, std::placeholders::_2);
+    HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", callbackIdentify);
 
     _service = new HAPService(serviceType_lightBulb);
     _accessory->addService(_service);
@@ -95,13 +100,17 @@ HAPAccessory* HAPPluginLED::initAccessory(){
         _powerState->setValue("true");
     else
         _powerState->setValue("false");
-    _powerState->valueChangeFunctionCall = &changeLightPower;
+    
+    auto callbackPowerState = std::bind(&HAPPluginLED::changePower, this, std::placeholders::_1, std::placeholders::_2);        
+    _powerState->valueChangeFunctionCall = callbackPowerState;
     _accessory->addCharacteristics(_service, _powerState);
 
     
     _brightnessState = new intCharacteristics(charType_brightness, permission_read|permission_write, 0, 100, 1, unit_percentage);
     _brightnessState->setValue("50");
-    _brightnessState->valueChangeFunctionCall = &changeBrightness;
+    //_brightnessState->valueChangeFunctionCall = &changeBrightness;
+    auto callbackBrightness = std::bind(&HAPPluginLED::changeBrightness, this, std::placeholders::_1, std::placeholders::_2);        
+    _brightnessState->valueChangeFunctionCall = callbackBrightness;
     //accessory->addCharacteristics(_service, _brightnessState);    
 
 	LogD("OK", true);
@@ -155,3 +164,9 @@ String HAPPluginLED::getValue(uint8_t type){
     return "";
 }
 
+void HAPPluginLED::identify(bool oldValue, bool newValue) {
+    printf("Start Identify Light from member\n");
+
+    // characteristics *c = _accessory->characteristicsOfType(charType_identify);
+    // c->setValue(String(false));
+}

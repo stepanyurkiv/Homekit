@@ -1418,7 +1418,8 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 	//response += String( HTTP_CRLF );
 
 	if (httpStatus == HTTP_204) {		
-		//response += String( HTTP_CRLF );
+		response += String(HTTP_CRLF);
+		// response += String(HTTP_CRLF);
 	} else {
 		response += String( HTTP_CONTENT_TYPE_HAPJSON );
 
@@ -2582,13 +2583,36 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 	String idStr = hapClient->request.params["id"];
 	//LogE(idStr, true);
 
+	bool hasParamMeta = false;	
+	bool hasParamPerms = false;
+	bool hasParamEvent = false;
+	bool hasParamType = false;
+
+	for (const auto &p : hapClient->request.params) {
+
+#if HAP_DEBUG
+    	LogD("param: " + p.first + " - " + p.second, true);				
+#endif	
+		if (p.first == "meta" && p.second == "1"){
+			hasParamMeta = true;
+		}	else if (p.first == "perms" && p.second == "1") {
+			hasParamPerms = true;
+		}	else if (p.first == "ev" && p.second == "1"){
+			hasParamEvent = true;
+		}	else if (p.first == "type" && p.second == "1"){
+			hasParamType = true;
+		}
+	}
+
+
 	//String result = "[";
 	DynamicJsonBuffer jsonBuffer(HAP_ARDUINOJSON_BUFFER_SIZE);
 
 	JsonObject& root = jsonBuffer.createObject();
-	JsonArray& characteristics = root.createNestedArray("characteristics");
+	JsonArray& jsonCharacteristics = root.createNestedArray("characteristics");
 
 	bool errorOccured = false;
+	int32_t errorCode = 0;
 
 	do {
 		int curPos = 0;
@@ -2598,54 +2622,59 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 		}
 
 		String keyPair = idStr.substring(curPos, endIndex); 
-		//Serial.printf("keyPair: %s\n", keyPair.c_str());
 
 		int equalIndex = keyPair.indexOf(".");
 
 		int aid = keyPair.substring(0, equalIndex).toInt();
 		int iid = keyPair.substring(equalIndex + 1).toInt();
 
-		
-		// Serial.print(">>>>>>>>>>>>>>>>>>< aid: "); 
-		// Serial.print(aid);
-		// Serial.print(" - iid: ");
-		// Serial.println(iid);
-		
-		//int error_code = HAP_STATUS_SUCCESS;
-		//
-
-		// String value = getValueForCharacteristics(aid, iid);
-
-
-		JsonObject& characteristics_0 = characteristics.createNestedObject();
+		JsonObject& characteristics_0 = jsonCharacteristics.createNestedObject();
 		characteristics_0["aid"] = aid;
 		characteristics_0["iid"] = iid;
 
+
+		characteristics* c = _accessorySet->getCharacteristics(aid, iid);
+		if (hasParamEvent) {
+			characteristics_0["ev"] = c->notifiable();
+		} 
+
+		if (hasParamType){
+			characteristics_0["type"] = String(c->type, HEX);
+		}
+
+		if (hasParamPerms){
+			JsonArray& perms = characteristics_0.createNestedArray("perms");
+			if (c->readable())	
+				perms.add("pr");			
+			if (c->notifiable())
+				perms.add("ev");
+			if (c->writable())
+				perms.add("pw");
+		}
+
 		size_t outSize = 0;
 		int32_t errorCode = _accessorySet->getValueForCharacteristics(aid, iid, NULL, &outSize);
-
-#if HAP_DEBUG
-			LogD( "errorCode: " + String(errorCode), true );
-			LogD( "outSize:   " + String(outSize), true );
-#endif
 
 		if ( errorCode != 0){		
 
 			characteristics_0["status"] = errorCode;
 			errorOccured = true;
+			errorCode = -1;
 		} else {
 			// outSize = outSize + 1;
 			char value[outSize];
 			_accessorySet->getValueForCharacteristics(aid, iid, value, &outSize);
 
 			if ( strcmp(value, "true") == 0 ) {
-				characteristics_0["value"] = true;
+				characteristics_0["value"] = 1;
 			} else if ( strcmp(value, "false") == 0 ) {
-				characteristics_0["value"] = false;
+				characteristics_0["value"] = 0;
 			} else {
 				characteristics_0["value"] = value;	
 			}
 
+			if (errorOccured)
+				characteristics_0["status"] = 0;
 #if HAP_DEBUG
 			LogD( "value: " + characteristics_0["value"].as<String>(), true );
 #endif
@@ -2655,20 +2684,23 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 	} while ( idStr.length() > 0 );
 
 	String response;			
-	root.prettyPrintTo(response);
+	root.printTo(response);
 
 #if HAP_DEBUG
 	root.prettyPrintTo(Serial);
 #endif
 
 
-	if (errorOccured){
+	if (errorCode == -1){
+		// Accessory not found
 		sendEncrypt(hapClient, HTTP_400, response, false);
-	} else {
+	} else if (errorOccured == false) {
+		// everything ok
 		sendEncrypt(hapClient, HTTP_200, response, false);	
+	} else if (errorOccured == true) {
+		// partial ok
+    	sendEncrypt(hapClient, HTTP_207, response, false);	
 	}
-    
-
 
 	LogV("OK", true);
 
@@ -2704,10 +2736,12 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 	//Serial.println(root["characteristics"][0].as<String>() );
 
 	JsonArray& charArray = root["characteristics"];
-	
+
+#if HAP_DEBUG	
 	charArray.prettyPrintTo(Serial);	
 	Serial.println();
-	
+#endif
+
 	String result = "[";
 	String httpStatusStr;
 	
@@ -2835,13 +2869,15 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 				result = HAPHelper::dictionaryWrap(&d, &result, 1);
 
 				if (errorOccured == false) {
-					result = "";
+					result = "\r\n";
 				}
 
 				LogD(">>> Sending result: ", false);
-				LogD(httpStatusStr, true);
-				LogD(result, true);
-
+				LogD(httpStatusStr, true);				
+#if HAP_DEBUG
+				LogD("response: ", true);
+				LogD(HAPHelper::printUnescaped(result), true);
+#endif
 				sendEncrypt(hapClient, httpStatusStr, result);
 			//}
 

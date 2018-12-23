@@ -89,36 +89,36 @@ HAPAccessory* HAPPluginDHT::initAccessory(){
 	LogD("\nInitializing plugin: " + _name + " ...", false);
 
 	_accessory = new HAPAccessory();
-	HAPAccessory::addInfoServiceToAccessory(_accessory, "DHT 1", "ET", "DHT", "12345678", &identifyDHT, version() );
+	// HAPAccessory::addInfoServiceToAccessory(_accessory, "DHT 1", "ET", "DHT", "12345678", std::bind(&identifyDHT), version() );
 
 
-	_temperatureService = new HAPService(serviceType_temperatureSensor);
-	_accessory->addService(_temperatureService);
+	// _temperatureService = new HAPService(serviceType_temperatureSensor);
+	// _accessory->addService(_temperatureService);
 
-	stringCharacteristics *tempServiceName = new stringCharacteristics(charType_serviceName, permission_read, 0);
-	tempServiceName->setValue("Temperature Sensor");
-	_accessory->addCharacteristics(_temperatureService, tempServiceName);
+	// stringCharacteristics *tempServiceName = new stringCharacteristics(charType_serviceName, permission_read, 0);
+	// tempServiceName->setValue("Temperature Sensor");
+	// _accessory->addCharacteristics(_temperatureService, tempServiceName);
 
-	//floatCharacteristics(uint8_t _type, int _permission, float minVal, float maxVal, float step, unit charUnit): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit)
+	// //floatCharacteristics(uint8_t _type, int _permission, float minVal, float maxVal, float step, unit charUnit): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit)
 
-	_temperatureValue = new floatCharacteristics(charType_currentTemperature, permission_read|permission_notify, -50, 100, 0.1, unit_celsius);
-	_temperatureValue->setValue("0.0");
-	_temperatureValue->valueChangeFunctionCall = &changeTemp;
-	_accessory->addCharacteristics(_temperatureService, _temperatureValue);
+	// _temperatureValue = new floatCharacteristics(charType_currentTemperature, permission_read|permission_notify, -50, 100, 0.1, unit_celsius);
+	// _temperatureValue->setValue("0.0");
+	// _temperatureValue->valueChangeFunctionCall = std::bind(&changeTemp);
+	// _accessory->addCharacteristics(_temperatureService, _temperatureValue);
 
-	_humidityService = new HAPService(serviceType_humiditySensor);
-	_accessory->addService(_humidityService);
+	// _humidityService = new HAPService(serviceType_humiditySensor);
+	// _accessory->addService(_humidityService);
 
-	stringCharacteristics *humServiceName = new stringCharacteristics(charType_serviceName, permission_read, 0);
-	humServiceName->setValue("Humidity Sensor");
-	_accessory->addCharacteristics(_humidityService, humServiceName);
+	// stringCharacteristics *humServiceName = new stringCharacteristics(charType_serviceName, permission_read, 0);
+	// humServiceName->setValue("Humidity Sensor");
+	// _accessory->addCharacteristics(_humidityService, humServiceName);
 
-	//intCharacteristics(uint8_t _type, int _permission, int minVal, int maxVal, int step, unit charUnit): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit)
+	// //intCharacteristics(uint8_t _type, int _permission, int minVal, int maxVal, int step, unit charUnit): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit)
 
-	_humidityValue = new floatCharacteristics(charType_currentHumidity, permission_read|permission_notify, 0, 100, 0.1, unit_percentage);
-	_humidityValue->setValue("0");
-	_humidityValue->valueChangeFunctionCall = &changeHum;
-	_accessory->addCharacteristics(_humidityService, _humidityValue);
+	// _humidityValue = new floatCharacteristics(charType_currentHumidity, permission_read|permission_notify, 0, 100, 0.1, unit_percentage);
+	// _humidityValue->setValue("0");
+	// _humidityValue->valueChangeFunctionCall = std::bind(&changeHum);
+	// _accessory->addCharacteristics(_humidityService, _humidityValue);
 
 
 	LogD("OK", true);

@@ -15,6 +15,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <functional>
 
 #include "HAPAccessory.hpp"
 #include "HAPAccessorySet.hpp"
@@ -40,6 +41,10 @@ public:
 	virtual HAPAccessory* initAccessory() = 0;
 	virtual void setValue(String oldValue, String newValue) = 0;
 	virtual void setValue(uint8_t type, String oldValue, String newValue) = 0;
+
+	virtual void identify(bool oldValue, bool newValue) {
+		LogE("Handle identify from olugins", true);
+	}
 
 	virtual String getValue() = 0;
 

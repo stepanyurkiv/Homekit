@@ -17,7 +17,7 @@ HAPRequest::HAPRequest() {
 }
 
 HAPRequest::~HAPRequest() {
-
+	clear();
 }
 
 String HAPRequest::toString() const {

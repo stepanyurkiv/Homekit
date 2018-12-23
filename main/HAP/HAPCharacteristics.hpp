@@ -10,6 +10,7 @@
 
 #include <Arduino.h>
 #include "HAPGlobals.hpp"
+#include <functional>
 
 #ifndef HAP_UUID
 #define HAP_UUID        "\"%08X-0000-1000-8000-0026BB765291\""
@@ -200,6 +201,7 @@ typedef enum {
 } unit;
 
 
+
 class characteristics {
 public:
     
@@ -212,6 +214,7 @@ public:
     virtual String describe() = 0;
     bool writable() { return permission&permission_write; }
     bool notifiable() { return permission&permission_notify; }
+    bool readable() { return permission&permission_read; }
 };
 
 
@@ -221,9 +224,8 @@ class boolCharacteristics: public characteristics {
 public:
     bool _value;
     
-    void (*valueChangeFunctionCall)(bool oldValue, bool newValue) = NULL;
-    
-    //void (HAPPlugin::*valueChangeFunctionCall)(bool oldValue, bool newValue) = NULL;
+    //void (*valueChangeFunctionCall)(bool oldValue, bool newValue) = NULL;
+    std::function<void(bool, bool)> valueChangeFunctionCall = NULL;
 
     boolCharacteristics(uint8_t _type, int _permission): characteristics(_type, _permission) {}    
 
@@ -246,6 +248,9 @@ public:
         
         if (valueChangeFunctionCall)
             valueChangeFunctionCall(_value, newValue);
+
+        // if (valueChangeFunctionCallMember)
+        //     valueChangeFunctionCallMember(_value, newValue);    
         _value = newValue;
     }
     
@@ -259,7 +264,8 @@ public:
     const float _minVal, _maxVal, _step;
     const unit _unit;
     
-    void (*valueChangeFunctionCall)(float oldValue, float newValue) = NULL;
+    // void (*valueChangeFunctionCall)(float oldValue, float newValue) = NULL;
+    std::function<void(float, float)> valueChangeFunctionCall = NULL;
 
     floatCharacteristics(uint8_t _type, int _permission, float minVal, float maxVal, float step, unit charUnit): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit) {}
     
@@ -287,8 +293,9 @@ public:
     const int _minVal, _maxVal, _step;
     const unit _unit;
     
-    void (*valueChangeFunctionCall)(int oldValue, int newValue) = NULL;
-    
+    // void (*valueChangeFunctionCall)(int oldValue, int newValue) = NULL;
+    std::function<void(int, int)> valueChangeFunctionCall = NULL;
+
     intCharacteristics(uint8_t _type, int _permission, int minVal, int maxVal, int step, unit charUnit): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit) {
         _value = minVal;
     }
@@ -316,8 +323,8 @@ public:
     String _value;
     const uint8_t maxLen;
     
-    void (*valueChangeFunctionCall)(String oldValue, String newValue) = NULL;
-
+    // void (*valueChangeFunctionCall)(String oldValue, String newValue) = NULL;
+    std::function<void(String, String)> valueChangeFunctionCall = NULL;
 
     stringCharacteristics(uint8_t _type, int _permission, uint8_t _maxLen): characteristics(_type, _permission), maxLen(_maxLen) {}
 

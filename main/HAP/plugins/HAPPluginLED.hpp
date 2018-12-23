@@ -28,8 +28,13 @@ public:
 	String getValue();
 	String getValue(uint8_t type);
 
+	void changePower(bool oldValue, bool newValue);
+	void changeBrightness(int oldValue, int newValue);
+
 	void handle(bool forced=false);
+	void identify(bool oldValue, bool newValue);
 	// void handleEvents(int eventCode, struct HAPEvent eventParam);
+	
 private:	
 	HAPAccessory*			_accessory;
 	HAPService*				_service;	

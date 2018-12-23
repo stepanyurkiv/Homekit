@@ -50,6 +50,18 @@ void HAPWebServer::begin(){
 		}			
     });
 
+	_webserver->on("/api/debug/heap", HTTP_GET, [this](AsyncWebServerRequest *request){
+		LogD(__PRETTY_FUNCTION__,false);		
+		LogD( " url: " + request->url(),true);	
+		if (request->url() == "/api/debug/heap")	{
+			String key = "heap";
+			String value = String(ESP.getFreeHeap());
+    		request->send(200, "application/json", HAPHelper::dictionaryWrap(&key, &value, 1));
+		} else {
+			notFound(request);
+		}			
+    });
+
 	_webserver->on("/api/debug", HTTP_GET, [this](AsyncWebServerRequest *request){
 		LogD(__PRETTY_FUNCTION__,false);		
 		LogD( " url: " + request->url(),true);
