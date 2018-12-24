@@ -1354,11 +1354,11 @@ void HAPServer::handlePreferences(HAPClient* hapClient){
 
 	String response = String(HTTP_204);
 	response += String(HTTP_CRLF);
-	response += String(HTTP_CRLF);
+	
 	
 	// hapClient->client.write( HTTP_204 );
 	// hapClient->client.write( HTTP_CRLF );
-	// hapClient->client.write( HTTP_CRLF );
+	
 
 	hapClient->client.write(response.c_str(), response.length());
 	hapClient->request.clear();
@@ -2628,57 +2628,66 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 		int aid = keyPair.substring(0, equalIndex).toInt();
 		int iid = keyPair.substring(equalIndex + 1).toInt();
 
-		JsonObject& characteristics_0 = jsonCharacteristics.createNestedObject();
-		characteristics_0["aid"] = aid;
-		characteristics_0["iid"] = iid;
+		// JsonObject& characteristics_0 = jsonCharacteristics.createNestedObject();
+		// characteristics_0["aid"] = aid;
+		// characteristics_0["iid"] = iid;
 
 
-		characteristics* c = _accessorySet->getCharacteristics(aid, iid);
-		if (hasParamEvent) {
-			characteristics_0["ev"] = c->notifiable();
-		} 
+		// characteristics* c = _accessorySet->getCharacteristics(aid, iid);
+		// if (hasParamEvent) {
+		// 	characteristics_0["ev"] = c->notifiable();
+		// } 
 
-		if (hasParamType){
-			characteristics_0["type"] = String(c->type, HEX);
-		}
+		// if (hasParamType){
+		// 	characteristics_0["type"] = String(c->type, HEX);
+		// }
 
-		if (hasParamPerms){
-			JsonArray& perms = characteristics_0.createNestedArray("perms");
-			if (c->readable())	
-				perms.add("pr");			
-			if (c->notifiable())
-				perms.add("ev");
-			if (c->writable())
-				perms.add("pw");
-		}
+		// if (hasParamPerms){
+		// 	JsonArray& perms = characteristics_0.createNestedArray("perms");
+		// 	if (c->readable())	
+		// 		perms.add("pr");			
+		// 	if (c->notifiable())
+		// 		perms.add("ev");
+		// 	if (c->writable())
+		// 		perms.add("pw");
+		// }
 
-		size_t outSize = 0;
-		int32_t errorCode = _accessorySet->getValueForCharacteristics(aid, iid, NULL, &outSize);
 
-		if ( errorCode != 0){		
+		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		characteristics* character = _accessorySet->getCharacteristics(aid, iid);
 
-			characteristics_0["status"] = errorCode;
-			errorOccured = true;
-			errorCode = -1;
-		} else {
-			// outSize = outSize + 1;
-			char value[outSize];
-			_accessorySet->getValueForCharacteristics(aid, iid, value, &outSize);
+		JsonObject& chr = jsonCharacteristics.createNestedObject();
+		chr["aid"] = aid;
+		chr["iid"] = iid;
+		character->toJson(chr, hasParamType, hasParamPerms, hasParamEvent, hasParamMeta);
+		
+		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
-			if ( strcmp(value, "true") == 0 ) {
-				characteristics_0["value"] = 1;
-			} else if ( strcmp(value, "false") == 0 ) {
-				characteristics_0["value"] = 0;
-			} else {
-				characteristics_0["value"] = value;	
-			}
+// 		size_t outSize = 0;
+// 		int32_t errorCode = _accessorySet->getValueForCharacteristics(aid, iid, NULL, &outSize);
 
-			if (errorOccured)
-				characteristics_0["status"] = 0;
-#if HAP_DEBUG
-			LogD( "value: " + characteristics_0["value"].as<String>(), true );
-#endif
-		}
+// 		if ( errorCode != 0){		
+
+// 			characteristics_0["status"] = errorCode;
+// 			errorOccured = true;
+// 			errorCode = -1;
+// 		} else {
+// 			// outSize = outSize + 1;
+// 			char value[outSize];
+// 			_accessorySet->getValueForCharacteristics(aid, iid, value, &outSize);
+
+// 			characteristics_0["value"] = value;				
+
+// 			if (errorOccured)
+// 				characteristics_0["status"] = 0;
+// #if HAP_DEBUG
+// 			Serial.println(characteristics_0["value"].as<const char*>());
+// #endif
+// 		}
 		
 		idStr = idStr.substring(endIndex + 1); 
 	} while ( idStr.length() > 0 );
@@ -2946,46 +2955,53 @@ String HAPServer::buildEventResponse(int aid, int iid){
 
 	JsonObject& root = jsonBuffer.createObject();
 
-	JsonArray& characteristics = root.createNestedArray("characteristics");
+	JsonArray& jsonCharacteristics = root.createNestedArray("characteristics");
 
-	JsonObject& characteristics_0 = characteristics.createNestedObject();
-	characteristics_0["aid"] = aid;
-	characteristics_0["iid"] = iid;
+	JsonObject& chr = jsonCharacteristics.createNestedObject();
+	chr["aid"] = aid;
+	chr["iid"] = iid;
 
+	characteristics *character = _accessorySet->getCharacteristics(aid, iid);
+	character->toJson(chr);
 
-	// String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);        	
-
-	size_t outSize = 0;
-	int32_t errorCode = 0;
-
-	errorCode = _accessorySet->getValueForCharacteristics(aid, iid, NULL, &outSize);
-
-#if HAP_DEBUG
-	LogD( "errorCode: " + String(errorCode), true );
-	//LogD( "outSize: " + String(outSize), true );
-#endif
-
-	if ( errorCode != 0){
-		// TODO:
-		characteristics_0["status"] = errorCode;
-	} else {
-
-		// outSize = outSize + 1;
-		char value[outSize];
-		_accessorySet->getValueForCharacteristics(aid, iid, value, &outSize);		
-#if HAP_DEBUG
-		LogD( "value: " + String(value), true );
-#endif
+	// JsonObject& characteristics_0 = characteristics.createNestedObject();
+	// characteristics_0["aid"] = aid;
+// 	characteristics_0["iid"] = iid;
 
 
-		if ( strcmp(value, "true") == 0 ) {
-			characteristics_0["value"] = true;
-		} else if ( strcmp(value, "false") == 0 ) {
-			characteristics_0["value"] = false;
-		} else {
-			characteristics_0["value"] = value;	
-		}
-	}
+// 	// String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);        	
+
+// 	size_t outSize = 0;
+// 	int32_t errorCode = 0;
+
+// 	errorCode = _accessorySet->getValueForCharacteristics(aid, iid, NULL, &outSize);
+
+// #if HAP_DEBUG
+// 	LogD( "errorCode: " + String(errorCode), true );
+// 	//LogD( "outSize: " + String(outSize), true );
+// #endif
+
+// 	if ( errorCode != 0){
+// 		// TODO:
+// 		characteristics_0["status"] = errorCode;
+// 	} else {
+
+// 		// outSize = outSize + 1;
+// 		char value[outSize];
+// 		_accessorySet->getValueForCharacteristics(aid, iid, value, &outSize);		
+// #if HAP_DEBUG
+// 		LogD( "value: " + String(value), true );
+// #endif
+
+
+// 		if ( strcmp(value, "true") == 0 ) {
+// 			characteristics_0["value"] = true;
+// 		} else if ( strcmp(value, "false") == 0 ) {
+// 			characteristics_0["value"] = false;
+// 		} else {
+// 			characteristics_0["value"] = value;	
+// 		}
+// 	}
 			
 	root.printTo(response);
 

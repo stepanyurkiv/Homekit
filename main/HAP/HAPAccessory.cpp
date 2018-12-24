@@ -108,42 +108,42 @@ String HAPAccessory::describe() const {
 }
 
 
-HAPService* HAPAccessory::addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunction identifyCallback, String firmwareRev) {
-    HAPService *infoService = new HAPService(serviceType_accessoryInfo);
-    acc->addService(infoService);
+// HAPService* HAPAccessory::addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunction identifyCallback, String firmwareRev) {
+//     HAPService *infoService = new HAPService(serviceType_accessoryInfo);
+//     acc->addService(infoService);
     
-    stringCharacteristics *accNameCha = new stringCharacteristics(charType_serviceName, permission_read, 32);
-    accNameCha->setValue(accName);
-    acc->addCharacteristics(infoService, accNameCha);
+//     stringCharacteristics *accNameCha = new stringCharacteristics(charType_serviceName, permission_read, 32);
+//     accNameCha->setValue(accName);
+//     acc->addCharacteristics(infoService, accNameCha);
     
-    stringCharacteristics *manNameCha = new stringCharacteristics(charType_manufactuer, permission_read, 32);
-    manNameCha->setValue(manufactuerName);
-    acc->addCharacteristics(infoService, manNameCha);
+//     stringCharacteristics *manNameCha = new stringCharacteristics(charType_manufactuer, permission_read, 32);
+//     manNameCha->setValue(manufactuerName);
+//     acc->addCharacteristics(infoService, manNameCha);
     
-    stringCharacteristics *modelNameCha = new stringCharacteristics(charType_modelName, permission_read, 32);
-    modelNameCha->setValue(modelName);
-    acc->addCharacteristics(infoService, modelNameCha);
+//     stringCharacteristics *modelNameCha = new stringCharacteristics(charType_modelName, permission_read, 32);
+//     modelNameCha->setValue(modelName);
+//     acc->addCharacteristics(infoService, modelNameCha);
     
-    stringCharacteristics *serialNameCha = new stringCharacteristics(charType_serialNumber, permission_read, 32);
-    serialNameCha->setValue(serialNumber);
-    acc->addCharacteristics(infoService, serialNameCha);
+//     stringCharacteristics *serialNameCha = new stringCharacteristics(charType_serialNumber, permission_read, 32);
+//     serialNameCha->setValue(serialNumber);
+//     acc->addCharacteristics(infoService, serialNameCha);
     
-    boolCharacteristics *identify = new boolCharacteristics(charType_identify, permission_write);
-    identify->setValue("false");
-    identify->valueChangeFunctionCall = identifyCallback;
-    acc->addCharacteristics(infoService, identify);
+//     boolCharacteristics *identify = new boolCharacteristics(charType_identify, permission_write);
+//     identify->setValue("false");
+//     identify->valueChangeFunctionCall = identifyCallback;
+//     acc->addCharacteristics(infoService, identify);
 
 
-    if ( firmwareRev != "" ) {
-        stringCharacteristics *firmwareRevCha = new stringCharacteristics(charType_firmwareRevision, permission_read|permission_notify, 32);
-        firmwareRevCha->setValue(firmwareRev);
-        acc->addCharacteristics(infoService, firmwareRevCha);    
-    }
+//     if ( firmwareRev != "" ) {
+//         stringCharacteristics *firmwareRevCha = new stringCharacteristics(charType_firmwareRevision, permission_read|permission_notify, 32);
+//         firmwareRevCha->setValue(firmwareRev);
+//         acc->addCharacteristics(infoService, firmwareRevCha);    
+//     }
     
 
 
-    return infoService;
-}
+//     return infoService;
+// }
 
 HAPService* HAPAccessory::addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunctionCallback callback, String firmwareRev) {
     HAPService *infoService = new HAPService(serviceType_accessoryInfo);

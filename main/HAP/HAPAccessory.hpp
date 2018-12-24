@@ -15,7 +15,7 @@
 #include "HAPService.hpp"
 #include "HAPCharacteristics.hpp"
 
-typedef void (*identifyFunction)(bool oldValue, bool newValue);
+// typedef void (*identifyFunction)(bool oldValue, bool newValue);
 typedef std::function<void(bool, bool)> identifyFunctionCallback;
 
 class HAPAccessory {
@@ -41,7 +41,7 @@ public:
 
     String describe() const;
 
-    static HAPService* addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunction identifyCallback, String firmwareRev = "");
+    // static HAPService* addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunction identifyCallback, String firmwareRev = "");
     static HAPService* addInfoServiceToAccessory(HAPAccessory *acc, String accName, String manufactuerName, String modelName, String serialNumber, identifyFunctionCallback callback, String firmwareRev = "");
     
 

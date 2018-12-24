@@ -40,7 +40,7 @@ HAPPluginInfluxDB::HAPPluginInfluxDB() {
 	
 	_type = HAP_PLUGIN_TYPE_STORAGE;
 	_name = "HAPPluginInfluxDB";
-	_isEnabled = true;
+	_isEnabled = false;
 	_interval = HAP_PLUGIN_INTERVAL;
 	_previousMillis = 0;	
 	_openedDb = false;
@@ -154,24 +154,24 @@ void HAPPluginInfluxDB::handleService(JsonObject& service){
 	String sName = getServiceName(chrs);
 
 	std::vector<dbMeasurement> vec;
-	
+	Serial.println(sName);
 	
 	for (auto chr : chrs){
-
-		uint8_t *cType = HAPHelper::hexToBin(chr["type"].as<char*>());		
-		if (*cType != charType_serviceName) {
-
-			dbMeasurement row = dbMeasurement("_tmp_");			
-			handleCharacteristic(chr, &row);			
-
-			vec.push_back(row);
-
-		}
-		free(cType);
 		
+		uint8_t *cType = HAPHelper::hexToBin(chr["type"].as<char*>());		
+				
+		if (*cType != charType_serviceName) {	
+			
+			dbMeasurement row = dbMeasurement("_tmp_");						
+			handleCharacteristic(chr, &row);						
+			vec.push_back(row);
+			
+		}
+		
+		free(cType);		
 	}
-	
 
+	
 	for (dbMeasurement row : vec) {
 		row.setMeasurement(sName);
 		LogD(">>> " + sName, false);

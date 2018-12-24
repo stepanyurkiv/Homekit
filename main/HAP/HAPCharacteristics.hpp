@@ -11,6 +11,7 @@
 #include <Arduino.h>
 #include "HAPGlobals.hpp"
 #include <functional>
+#include <ArduinoJson.h>
 
 #ifndef HAP_UUID
 #define HAP_UUID        "\"%08X-0000-1000-8000-0026BB765291\""
@@ -208,10 +209,15 @@ public:
     uint8_t type;
     const int permission;
     int iid;
+    
     characteristics(uint8_t _type, int _permission): type(_type), permission(_permission) {}
+    
     virtual String value() = 0;
     virtual void setValue(String str) = 0;
     virtual String describe() = 0;
+
+    virtual void toJson(JsonObject& root, bool type_ = false, bool perms = false, bool event = false, bool meta = false) = 0;
+
     bool writable() { return permission&permission_write; }
     bool notifiable() { return permission&permission_notify; }
     bool readable() { return permission&permission_read; }
@@ -255,6 +261,23 @@ public:
     }
     
 
+    virtual void toJson(JsonObject& root, bool type_ = false, bool perms = false, bool event = false, bool meta = false){
+        root["value"] = _value;
+        if (perms){
+            JsonArray& perms = root.createNestedArray("perms");
+            if (writable())
+                perms.add("pw");
+            if (readable())
+                perms.add("pr");
+            if (notifiable())
+                perms.add("ev");        
+        }
+        if (event)
+            root["ev"] = notifiable();
+        if (type_)
+            root["type"] = type;
+    }
+
     virtual String describe();
 };
 
@@ -284,6 +307,46 @@ public:
         }
     }
     
+
+    virtual void toJson(JsonObject& root, bool type_ = false, bool perms = false, bool event = false, bool meta = false){
+        
+        root["value"] = _value * 1.0;
+
+        if (perms){
+            JsonArray& perms = root.createNestedArray("perms");
+            if (writable())
+                perms.add("pw");
+            if (readable())
+                perms.add("pr");
+            if (notifiable())
+                perms.add("ev");        
+        }
+        if (event)
+            root["ev"] = notifiable();
+        if (type_)
+            root["type"] = type;
+        if (meta){
+            root["minValue"] = _minVal;
+            root["maxValue"] = _maxVal;
+            root["step"] = _step;
+
+            switch (_unit) {
+                case unit_arcDegree:                
+                    root["unit"] = "arcdegrees";
+                    break;
+                case unit_celsius:                
+                    root["unit"] = "celsius";
+                    break;
+                case unit_percentage:
+                    root["unit"] = "percentage";
+                    break;
+                case unit_none:
+                    break;
+            }
+
+        }
+    }
+
     virtual String describe();
 };
 
@@ -315,6 +378,43 @@ public:
         }
     }
 
+    virtual void toJson(JsonObject& root, bool type_ = false, bool perms = false, bool event = false, bool meta = false){
+        root["value"] = _value;
+        if (perms){
+            JsonArray& perms = root.createNestedArray("perms");
+            if (writable())
+                perms.add("pw");
+            if (readable())
+                perms.add("pr");
+            if (notifiable())
+                perms.add("ev");        
+        }
+        if (event)
+            root["ev"] = notifiable();
+
+        if (type_)
+            root["type"] = type;
+        
+        if (meta){
+            root["minValue"] = _minVal;
+            root["maxValue"] = _maxVal;
+            root["step"] = _step;
+            switch (_unit) {
+                case unit_arcDegree:                
+                    root["unit"] = "arcdegrees";
+                    break;
+                case unit_celsius:                
+                    root["unit"] = "celsius";
+                    break;
+                case unit_percentage:
+                    root["unit"] = "percentage";
+                    break;
+                case unit_none:
+                    break;
+            }
+        }
+    }
+
     virtual String describe();
 };
 
@@ -336,6 +436,31 @@ public:
         if (valueChangeFunctionCall)
             valueChangeFunctionCall(_value, str);
         _value = str;
+    }
+
+    virtual void* raw() {
+        return &_value;
+    }
+
+
+    virtual void toJson(JsonObject& root, bool type_ = false, bool perms = false, bool event = false, bool meta = false){
+        root["value"] = _value;
+        if (perms){
+            JsonArray& perms = root.createNestedArray("perms");
+            if (writable())
+                perms.add("pw");
+            if (readable())
+                perms.add("pr");
+            if (notifiable())
+                perms.add("ev");        
+        }
+        if (event)
+            root["ev"] = notifiable();
+        if (type_)
+            root["type"] = type;
+        if (meta){
+            root["maxLen"] = maxLen;
+        }    
     }
 
     virtual String describe();

@@ -26,6 +26,10 @@ public:
 	String getValue();
 	String getValue(uint8_t type);
 
+	void changeTemp(float oldValue, float newValue);
+	void changeHum(float oldValue, float newValue);
+
+	void identify(bool oldValue, bool newValue);
     void handle(bool forced = false);	
 	// void handleEvents(int eventCode, struct HAPEvent eventParam);
 private:

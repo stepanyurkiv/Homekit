@@ -10,12 +10,13 @@
 #define VERSION_REVISION    5
 #define VERSION_BUILD       0
 
+#define ENABLE_BRIGHTNESS   0
 
 
 HAPPluginLED::HAPPluginLED(){
     _type = HAP_PLUGIN_TYPE_ACCESSORY;
     _name = "HAPPluginLED";
-    _isEnabled = true;
+    _isEnabled = false;
     _interval = HAP_BLINK_INTERVAL;
     _previousMillis = 0;
     _isOn = true;
@@ -45,7 +46,7 @@ void HAPPluginLED::changePower(bool oldValue, bool newValue) {
 }
 
 void HAPPluginLED::changeBrightness(int oldValue, int newValue){
-    //printf("New brightness state: %d\n", newValue);
+    printf("New brightness state: %d\n", newValue);
 }
 
 
@@ -68,12 +69,13 @@ void HAPPluginLED::handle(bool forced){
 		struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _powerState->iid, _powerState->value());							
 		_eventManager->queueEvent( EventManager::kEventFromController, event);
 
-        //uint32_t freeMem = ESP.getFreeHeap();
-        //Serial.println(freeMem);
-        
-        float percentage = 100 / 2;
-        //Serial.printf("%f\n", percentage);
+        uint32_t freeMem = ESP.getFreeHeap();        
+        uint8_t percentage = ( freeMem * 100) / 245000;        
         _brightnessState->setValue(String(percentage));
+
+        // Add event
+		struct HAPEvent eventB = HAPEvent(nullptr, _accessory->aid, _brightnessState->iid, _brightnessState->value());							
+		_eventManager->queueEvent( EventManager::kEventFromController, eventB);
     }
 }
 
@@ -86,7 +88,7 @@ HAPAccessory* HAPPluginLED::initAccessory(){
 	_accessory = new HAPAccessory();
 	//HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
     auto callbackIdentify = std::bind(&HAPPlugin::identify, this, std::placeholders::_1, std::placeholders::_2);
-    HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", callbackIdentify);
+    HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", callbackIdentify, version());
 
     _service = new HAPService(serviceType_lightBulb);
     _accessory->addService(_service);
@@ -106,12 +108,15 @@ HAPAccessory* HAPPluginLED::initAccessory(){
     _accessory->addCharacteristics(_service, _powerState);
 
     
-    _brightnessState = new intCharacteristics(charType_brightness, permission_read|permission_write, 0, 100, 1, unit_percentage);
+    _brightnessState = new intCharacteristics(charType_brightness, permission_read|permission_write|permission_notify, 0, 100, 1, unit_percentage);
+        //_brightnessState->valueChangeFunctionCall = &changeBrightness;
+
+#if ENABLE_BRIGHTNESS   
     _brightnessState->setValue("50");
-    //_brightnessState->valueChangeFunctionCall = &changeBrightness;
     auto callbackBrightness = std::bind(&HAPPluginLED::changeBrightness, this, std::placeholders::_1, std::placeholders::_2);        
     _brightnessState->valueChangeFunctionCall = callbackBrightness;
-    //accessory->addCharacteristics(_service, _brightnessState);    
+    _accessory->addCharacteristics(_service, _brightnessState);    
+#endif
 
 	LogD("OK", true);
 
