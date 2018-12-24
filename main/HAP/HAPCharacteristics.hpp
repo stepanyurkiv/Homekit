@@ -263,6 +263,7 @@ public:
 
     virtual void toJson(JsonObject& root, bool type_ = false, bool perms = false, bool event = false, bool meta = false){
         root["value"] = _value;
+        root["iid"] = iid;
         if (perms){
             JsonArray& perms = root.createNestedArray("perms");
             if (writable())
@@ -311,6 +312,7 @@ public:
     virtual void toJson(JsonObject& root, bool type_ = false, bool perms = false, bool event = false, bool meta = false){
         
         root["value"] = _value * 1.0;
+        root["iid"] = iid;
 
         if (perms){
             JsonArray& perms = root.createNestedArray("perms");
@@ -379,7 +381,10 @@ public:
     }
 
     virtual void toJson(JsonObject& root, bool type_ = false, bool perms = false, bool event = false, bool meta = false){
+        
         root["value"] = _value;
+        root["iid"] = iid;
+
         if (perms){
             JsonArray& perms = root.createNestedArray("perms");
             if (writable())
@@ -444,7 +449,10 @@ public:
 
 
     virtual void toJson(JsonObject& root, bool type_ = false, bool perms = false, bool event = false, bool meta = false){
+        
         root["value"] = _value;
+        root["iid"] = iid;
+        
         if (perms){
             JsonArray& perms = root.createNestedArray("perms");
             if (writable())

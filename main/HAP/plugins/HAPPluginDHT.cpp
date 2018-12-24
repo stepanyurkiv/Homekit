@@ -10,7 +10,6 @@
 #define VERSION_BUILD       1
 
 
-
 HAPPluginDHT::HAPPluginDHT(){
 	_type = HAP_PLUGIN_TYPE_ACCESSORY;
 	_name = "HAPPluginDHT";

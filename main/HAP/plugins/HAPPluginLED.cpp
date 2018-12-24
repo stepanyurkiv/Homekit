@@ -12,7 +12,6 @@
 
 #define ENABLE_BRIGHTNESS   0
 
-
 HAPPluginLED::HAPPluginLED(){
     _type = HAP_PLUGIN_TYPE_ACCESSORY;
     _name = "HAPPluginLED";
@@ -21,19 +20,11 @@ HAPPluginLED::HAPPluginLED(){
     _previousMillis = 0;
     _isOn = true;
 
-
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
 }
-
-// void identify(bool oldValue, bool newValue) {
-//     printf("Start Identify Light\n");
-
-//     characteristics *c = _accessory->characteristicsOfType(charType_identify);
-//     c->setValue(String(false));
-// }
 
 void HAPPluginLED::changePower(bool oldValue, bool newValue) {
     printf("New light power state: %d\n", newValue);
@@ -48,11 +39,6 @@ void HAPPluginLED::changePower(bool oldValue, bool newValue) {
 void HAPPluginLED::changeBrightness(int oldValue, int newValue){
     printf("New brightness state: %d\n", newValue);
 }
-
-
-// void HAPPluginLED::handleEvents(int eventCode, struct HAPEvent eventParam){
-// 	LogE("Handle event: [" + String(__PRETTY_FUNCTION__) + "]", true);
-// }
 
 void HAPPluginLED::handle(bool forced){
     
@@ -171,7 +157,4 @@ String HAPPluginLED::getValue(uint8_t type){
 
 void HAPPluginLED::identify(bool oldValue, bool newValue) {
     printf("Start Identify Light from member\n");
-
-    // characteristics *c = _accessory->characteristicsOfType(charType_identify);
-    // c->setValue(String(false));
 }

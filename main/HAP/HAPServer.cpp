@@ -2628,66 +2628,13 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 		int aid = keyPair.substring(0, equalIndex).toInt();
 		int iid = keyPair.substring(equalIndex + 1).toInt();
 
-		// JsonObject& characteristics_0 = jsonCharacteristics.createNestedObject();
-		// characteristics_0["aid"] = aid;
-		// characteristics_0["iid"] = iid;
-
-
-		// characteristics* c = _accessorySet->getCharacteristics(aid, iid);
-		// if (hasParamEvent) {
-		// 	characteristics_0["ev"] = c->notifiable();
-		// } 
-
-		// if (hasParamType){
-		// 	characteristics_0["type"] = String(c->type, HEX);
-		// }
-
-		// if (hasParamPerms){
-		// 	JsonArray& perms = characteristics_0.createNestedArray("perms");
-		// 	if (c->readable())	
-		// 		perms.add("pr");			
-		// 	if (c->notifiable())
-		// 		perms.add("ev");
-		// 	if (c->writable())
-		// 		perms.add("pw");
-		// }
-
-
-		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		characteristics* character = _accessorySet->getCharacteristics(aid, iid);
+		
 
 		JsonObject& chr = jsonCharacteristics.createNestedObject();
 		chr["aid"] = aid;
-		chr["iid"] = iid;
+
+		characteristics* character = _accessorySet->getCharacteristics(aid, iid);
 		character->toJson(chr, hasParamType, hasParamPerms, hasParamEvent, hasParamMeta);
-		
-		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-
-// 		size_t outSize = 0;
-// 		int32_t errorCode = _accessorySet->getValueForCharacteristics(aid, iid, NULL, &outSize);
-
-// 		if ( errorCode != 0){		
-
-// 			characteristics_0["status"] = errorCode;
-// 			errorOccured = true;
-// 			errorCode = -1;
-// 		} else {
-// 			// outSize = outSize + 1;
-// 			char value[outSize];
-// 			_accessorySet->getValueForCharacteristics(aid, iid, value, &outSize);
-
-// 			characteristics_0["value"] = value;				
-
-// 			if (errorOccured)
-// 				characteristics_0["status"] = 0;
-// #if HAP_DEBUG
-// 			Serial.println(characteristics_0["value"].as<const char*>());
-// #endif
-// 		}
 		
 		idStr = idStr.substring(endIndex + 1); 
 	} while ( idStr.length() > 0 );
@@ -2714,19 +2661,6 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 	LogV("OK", true);
 
 }
-
-
-// String HAPServer::getValueForCharacteristics(int aid, int iid){		
-// 	characteristics *c = getCharacteristics(aid, iid);
-
-// 	if (c != nullptr) {
-// 		return String(c->value());
-// 	}
-// 	return "--ERROR_OCCURED--";
-// }
-
-
-
 
 void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] ->  PUT /characteristics ...", true);
@@ -2950,66 +2884,37 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 
 String HAPServer::buildEventResponse(int aid, int iid){
 	String response;
-	const size_t bufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(3);
-	DynamicJsonBuffer jsonBuffer(bufferSize);
-
-	JsonObject& root = jsonBuffer.createObject();
-
-	JsonArray& jsonCharacteristics = root.createNestedArray("characteristics");
-
-	JsonObject& chr = jsonCharacteristics.createNestedObject();
-	chr["aid"] = aid;
-	chr["iid"] = iid;
 
 	characteristics *character = _accessorySet->getCharacteristics(aid, iid);
-	character->toJson(chr);
+	if (character != NULL){
+		const size_t bufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(3);
+		DynamicJsonBuffer jsonBuffer(bufferSize);
 
-	// JsonObject& characteristics_0 = characteristics.createNestedObject();
-	// characteristics_0["aid"] = aid;
-// 	characteristics_0["iid"] = iid;
+		JsonObject& root = jsonBuffer.createObject();
 
+		JsonArray& jsonCharacteristics = root.createNestedArray("characteristics");
 
-// 	// String value = getValueForCharacteristics(eventParam.aid, eventParam.iid);        	
+		JsonObject& chr = jsonCharacteristics.createNestedObject();
+		chr["aid"] = aid;
 
-// 	size_t outSize = 0;
-// 	int32_t errorCode = 0;
-
-// 	errorCode = _accessorySet->getValueForCharacteristics(aid, iid, NULL, &outSize);
-
-// #if HAP_DEBUG
-// 	LogD( "errorCode: " + String(errorCode), true );
-// 	//LogD( "outSize: " + String(outSize), true );
-// #endif
-
-// 	if ( errorCode != 0){
-// 		// TODO:
-// 		characteristics_0["status"] = errorCode;
-// 	} else {
-
-// 		// outSize = outSize + 1;
-// 		char value[outSize];
-// 		_accessorySet->getValueForCharacteristics(aid, iid, value, &outSize);		
-// #if HAP_DEBUG
-// 		LogD( "value: " + String(value), true );
-// #endif
-
-
-// 		if ( strcmp(value, "true") == 0 ) {
-// 			characteristics_0["value"] = true;
-// 		} else if ( strcmp(value, "false") == 0 ) {
-// 			characteristics_0["value"] = false;
-// 		} else {
-// 			characteristics_0["value"] = value;	
-// 		}
-// 	}
-			
-	root.printTo(response);
+		characteristics *character = _accessorySet->getCharacteristics(aid, iid);
+		character->toJson(chr);
+				
+		root.printTo(response);
 
 #if HAP_DEBUG
-	root.prettyPrintTo(Serial);
-	Serial.println();
+		root.prettyPrintTo(Serial);
+		Serial.println();
 #endif
-	return response;
+
+		return response;
+	} else {
+		//Todo:
+		LogE("ERROR - aid and iid not found", true);
+		return "";
+	}
+
+
 }
 
 bool HAPServer::sendEvent(HAPClient* hapClient, String response){
